@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.0.2a
+// @version      0.0.3
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -21,8 +21,10 @@
 //Function to open/close the menu
 window.gmenu.toggleMenu = function() {
     if (window.gmenu.isOpen) {
+        window.gmenu.isOpen = false;
         window.gmenu.menuDiv.style.display = "none";
     } else {
+        window.gmenu.isOpen = true;
         window.gmenu.menuDiv.style.display = "block";
         for (let i = 0; i < window.gmenu.allLS.length; i++) {
             let currLS = window.gmenu.allLS[i];
@@ -53,18 +55,38 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         this.html = ``; //This HTML will be enclosed in a Div; Instead of adding to the main HTML directly, methods add to this HTML.
         this.htmlIndex = window.gmenu.allHTML.length; //This instance's index in the allHTML array
     }
+    #waitForElm(selector) {
+        return new Promise(resolve => {
+            if (document.querySelector(selector)) {
+                return resolve(document.querySelector(selector));
+            }
+
+            const observer = new MutationObserver(mutations => {
+                if (document.querySelector(selector)) {
+                    observer.disconnect();
+                    resolve(document.querySelector(selector));
+                }
+            });
+
+            // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+    }
 
     //Called automatically, initializes the button, menu div, and a couple of other things
     initialize() {
         window.gmenu.isGMenuInit = true; //Prevent other instances from initializing this window
         var bottomDiv = document.getElementsByClassName('geofs-ui-bottom')[0];
         window.gmenu.btn = document.createElement('div');
-        window.gmenu.btn.id = "gmenu";
+        window.gmenu.btn.id = "gamenu";
         window.gmenu.btn.classList = "mdl-button mdl-js-button geofs-f-standard-ui";
         window.gmenu.btn.style.padding = "0px";
         bottomDiv.appendChild(window.gmenu.btn);
         window.gmenu.btn.innerHTML = `<img src="https://raw.githubusercontent.com/tylerbmusic/GPWS-files_geofs/refs/heads/main/s_icon.png" style="width: 30px">`;
-        document.getElementById("gmenu").onclick = function() {window.gmenu.toggleMenu();};
+        document.getElementById("gamenu").onclick = () => {window.gmenu.toggleMenu();};
         if (!window.gmenu.menuDiv) {
             window.gmenu.menuDiv = document.createElement('div');
             window.gmenu.menuDiv.id = "ggamergguyDiv";
@@ -89,19 +111,22 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             if (localStorage.getItem(this.prefix + "Enabled") == null) {
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
-            document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
-            //Automatically include a RESET button to reset all values
-            document.getElementById(this.prefix + "Reset").onclick = function() {
-                for (let i = 0; i < this.#defaults.length; i++) {
-                    let currD = this.#defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
-                    localStorage.setItem(currD[0], currD[1]);
-                    if (currD[2]) { //if it's a checkbox
-                        document.getElementById(currD[0]).checked = currD[1];
-                    } else {
-                        document.getElementById(currD[0]).value = currD[1];
+            this.waitForElm(`#${this.prefix}Enabled`).then((elm) => {
+                console.log('twL stuff added');
+                document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
+                //Automatically include a RESET button to reset all values
+                document.getElementById(this.prefix + "Reset").onclick = function() {
+                    for (let i = 0; i < this.#defaults.length; i++) {
+                        let currD = this.#defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
+                        localStorage.setItem(currD[0], currD[1]);
+                        if (currD[2]) { //if it's a checkbox
+                            document.getElementById(currD[0]).checked = currD[1];
+                        } else {
+                            document.getElementById(currD[0]).value = currD[1];
+                        }
                     }
-                }
-            }; //End onclick function
+                }; //End onclick function
+            });
             return true;
         }
         return false;
