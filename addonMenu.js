@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.0.3
+// @version      0.0.3a
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -111,7 +111,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             if (localStorage.getItem(this.prefix + "Enabled") == null) {
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
-            this.waitForElm(`#${this.prefix}Enabled`).then((elm) => {
+            this.#waitForElm(`#${this.prefix}Enabled`).then((elm) => {
                 console.log('twL stuff added');
                 document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
                 //Automatically include a RESET button to reset all values
