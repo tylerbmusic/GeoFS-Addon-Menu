@@ -1,0 +1,30 @@
+[
+	{
+		"name": "Slew Mode",
+		"description": "Slew mode from FSX for GeoFS",
+		"version": "1.0",
+		"author": "tylerbmusic",
+		"script": "slewmode.js"
+	},
+	{
+		"name": "GPWS Callouts",
+		"description": "Ground Proximity Warning System Callouts",
+		"version": "1.0",
+		"script": "gpws.js",
+		"author": "tylerbmusic"
+	},
+	{
+		"name": "Landing Stats",
+		"description": "Addon that shows landing stats like vertical speed, landing rate, and more",
+		"version": "1.0",
+		"author": "tylerbmusic",
+		"script": "landingstats.js"
+	},
+	{
+		"name": "FPV",
+		"description": "Flight Path Vector to show where the aircraft is going",
+		"version": "1.0",
+		"author": "tylerbmusic",
+		"script": "fpv.js"
+	}
+]
