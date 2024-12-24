@@ -7,7 +7,7 @@
 	"content_scripts": [
 		{
 			"matches": ["https://www.geo-fs.com/geofs.php*"],
-			"js": ["addonManager.js"],
+			"js": ["script.js"],
 			"run_at": "document_idle"
 		}
 	],
