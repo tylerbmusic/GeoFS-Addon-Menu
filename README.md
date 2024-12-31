@@ -35,7 +35,8 @@ To add settings, you can call a few methods.
   * lsName: String, the name used for localStorage retrieval/storage (also the id name), will be automatically prefixed by the prefix, the first letter should be capitalized;  
   * type: any of the standard HTML input types;  
   * level: Integer, the indentation of the item, where 0 is no indentation;  
-  * defaultValue: Self explanatory, the value if the item was not set or was reset.  
+  * defaultValue: Self explanatory, the value if the item was not set or was reset.
+  * options: Optional String, additional HTML attributes to add to the element.
 * `addKBShortcut(description, lsName, level, defaultValue, fn)`: Adds a keyboard shortcut to the menu (this method is similar to the addItem method, but adds a keydown listener and function). Shortcut values can either be keys (like 'a', '-', or '$') or codes (like keyA or Minus), but multiple-key shortcuts are not supported. Options:  
   * description: Same as `addItem`
   * lsName: Same as `addItem`
