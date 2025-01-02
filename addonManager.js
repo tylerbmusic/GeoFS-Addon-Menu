@@ -22,14 +22,25 @@ function initToggle(addon, settings) {
 	toggle.style.scale = "1.5";
 	toggle.checked = settings.enabled;
 
+	const bottomText = document.createElement("span");
+
 	const version = document.createElement("code");
-	version.textContent = `v${addon.version}`;
+	version.textContent = `v${addon.version} • by `;
+
+	const author = document.createElement("a");
+	author.href = addon.repository;
+	author.textContent = `${addon.author}`;
+	author.target = "_blank";
+
+	bottomText.appendChild(version);
+	bottomText.appendChild(author);
 	const toggleDiv = document.createElement("div");
+
+	toggleDiv.appendChild(bottomText);
 	toggleDiv.style.display = "flex";
 	toggleDiv.style.alignItems = "center";
 	toggleDiv.style.justifyContent = "space-between";
 	toggleDiv.style.marginTop = "1em";
-	toggleDiv.appendChild(version);
 	toggleDiv.appendChild(toggle);
 
 	toggle.addEventListener("change", async () => {
@@ -78,6 +89,11 @@ async function main() {
 
 	log(settings);
 	for (const addon of addons) {
+		if (!settings[addon.name]) {
+			// addon updates so set it to disabled by default
+			settings[addon.name] = { enabled: false };
+			await chrome.storage.local.set({ settings });
+		}
 		log(
 			`${addon.name} ${settings[addon.name].enabled ? "enabled" : "disabled"}`
 		);

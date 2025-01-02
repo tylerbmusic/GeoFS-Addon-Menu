@@ -48,7 +48,7 @@ export async function createDefaultSettings(addons) {
  * @param {Addon} addon - The addon to initialize.
  */
 export async function initAddon(addon) {
-	log(`Initializing addon: ${addon.name}`);
+	log(`Injecting addon: ${addon.name}`);
 	const scriptPath = `addons/${addon.script}`;
 	await injectScript(scriptPath);
 }

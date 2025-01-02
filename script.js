@@ -4,8 +4,9 @@ async function main() {
 	 * @property {string} name - The name of the addon.
 	 * @property {string} description - A short description of the addon.
 	 * @property {string} version - The version of the addon.
-	 * @property {string} author - The author of the addon.
 	 * @property {string} script - The file name of the addon script (*.js)
+	 * @property {string} author - The author of the addon.
+	 * @property {string} repository - The repository URL of the addon.
 	 */
 
 	const { log, err, initAddon, createDefaultSettings } = await import(
@@ -43,10 +44,9 @@ async function main() {
 
 	addons.forEach(async (addon) => {
 		if (settings[addon.name].enabled) {
-			log(`Enabled addon: ${addon.name}`);
 			initAddon(addon);
 		}
 	});
 }
 
-main();
+setTimeout(main, 3000);
