@@ -1,30 +1,18 @@
 # Docs
 ## Initial Setup
-If you are using Tampermonkey (or something similar), paste the code below into your script(s):
-```
-document.body.onload = setTimeout(() => {
-        if (!window.gmenu || !window.GMenu) {
-            fetch('https://raw.githubusercontent.com/tylerbmusic/GeoFS-Addon-Menu/refs/heads/main/addonMenu.js')
-                .then(response => response.text())
-                .then(script => {eval(script);})
-                .then(() => {
-                //Setup goes here
-            });
-        }
-    }, 100);
-```
-If you are using the console or a bookmarklet, paste this code into your script(s):
+Paste the code below into your script(s):
 ```
 if (!window.gmenu || !window.GMenu) {
-    fetch('https://raw.githubusercontent.com/tylerbmusic/GeoFS-Addon-Menu/refs/heads/main/addonMenu.js')
-        .then(response => response.text())
-        .then(script => {eval(script);})
-        .then(() => {
+        fetch('https://raw.githubusercontent.com/tylerbmusic/GeoFS-Addon-Menu/refs/heads/main/addonMenu.js')
+            .then(response => response.text())
+            .then(script => {eval(script);})
+            .then(() => {setTimeout(afterGMenu, 100);});
+}
+function afterGMenu() {
         //Setup goes here
-    });
 }
 ```
-Remove `//Setup goes here`, and in that line, create a variable and set it to a `new GMenu("Your addon name", "Short identifier for your addon")`. A good short identifier does not have any spaces, and is ideally less than 5 letters long.  
+Remove `//Setup goes here`, and in that line, create a variable and initialize it to a `new GMenu("Your addon name", "Short identifier for your addon")`. A good short identifier does not have any spaces, and is ideally less than 5 letters long.  
 For example, `const twLM = new window.GMenu("Taxiway Lights", "twL");` is what I used for my Taxiway Lights addon.
 ## Functions/Methods
 To add settings, you can call a few methods.  
