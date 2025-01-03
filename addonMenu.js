@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.1
+// @version      0.1.1
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -28,7 +28,7 @@ window.gmenu.toggleMenu = function() {
         window.gmenu.menuDiv.style.display = "block";
         for (let i = 0; i < window.gmenu.allLS.length; i++) {
             let currLS = window.gmenu.allLS[i];
-            currLS[1] ? document.getElementById(currLS[0]).value = localStorage.getItem(currLS[0]) : document.getElementById(currLS[0]).value = localStorage.getItem(currLS[0]);
+            currLS[1] ? document.getElementById(currLS[0]).checked = localStorage.getItem(currLS[0]) : document.getElementById(currLS[0]).value = localStorage.getItem(currLS[0]);
         }
     }
 }
@@ -44,7 +44,7 @@ window.gmenu.compileAllHTML = function() {
 }
 
 window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, depending on how big you think my ego is. I put the class in the window scope for easy access.
-    #defaults = [];
+    defaults = [];
     //Calling the constructor should automatically create the menu button. Options: name: A string, the name of your addon; prefix: A string, a short unique identifier for your addon which will be used for localStorage
     constructor(name, prefix) {
         this.name = name;
@@ -116,8 +116,8 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                 document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
                 //Automatically include a RESET button to reset all values
                 document.getElementById(this.prefix + "Reset").onclick = function() {
-                    for (let i = 0; i < this.#defaults.length; i++) {
-                        let currD = this.#defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
+                    for (let i = 0; i < this.defaults.length; i++) {
+                        let currD = this.defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
                         localStorage.setItem(currD[0], currD[1]);
                         if (currD[2]) { //if it's a checkbox
                             document.getElementById(currD[0]).checked = currD[1];
@@ -136,8 +136,8 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
     //Adds an item to the menu. Options: description: String, a very short description;  lsName: String, the name used for localStorage retrieval/storage (also the id name), will be automatically prefixed by the prefix;  type: any of the standard HTML input types;  level: Integer, the indentation of the item, where 0 is no indentation;  defaultValue: Self explanatory, the value if the item was not set or was reset
     addItem(description, lsName, type, level, defaultValue, options) {
         let idName = this.prefix + lsName;
-        this.#defaults.push([idName, defaultValue, (type == "checkbox")]); //Checkboxes are... "special." (elem.value doesn't work on them, they require elem.checked)
-        if (localStorage.getItem(idName == null)) {
+        this.defaults.push([idName, defaultValue, (type == "checkbox")]); //Checkboxes are... "special." (elem.value doesn't work on them, they require elem.checked)
+        if (localStorage.getItem(idName) == null) {
             localStorage.setItem(idName, defaultValue);
         }
         window.gmenu.allLS.push([idName, (type == "checkbox")]);
@@ -169,8 +169,9 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
     //Adds a keyboard shortcut to the menu (this method is similar to the addItem method, but adds a keydown listener and function).
     addKBShortcut(description, lsName, level, defaultValue, fn) {
         let idName = this.prefix + lsName;
-        this.#defaults.push([idName, defaultValue, false]);
-        if (localStorage.getItem(idName == null)) {
+        this.defaults.push([idName, defaultValue, false]);
+        if (localStorage.getItem(idName) == null) {
+            console.log(idName + " is null, setting to " + defaultValue);
             localStorage.setItem(idName, defaultValue);
         }
         window.gmenu.allLS.push([idName, false]);
