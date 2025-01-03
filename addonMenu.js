@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.0.3a
+// @version      0.1
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -103,7 +103,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             window.gmenu.allHTML[this.htmlIndex] = `
             <h1>${this.name}</h1>
             <span>Enabled: </span>
-            <input id="${this.prefix}Enabled" type="checkbox" onchange="localStorage.setItem('${this.prefix}Enabled', this.checked)" style="width: 5%; height: 5%;"><br>
+            <input id="${this.prefix}Enabled" type="checkbox" checked="${localStorage.getItem(this.prefix + "Enabled")}" onchange="localStorage.setItem('${this.prefix}Enabled', this.checked)" style="width: 30px; height: 30px;"><br>
             ${this.html}
             <button id="${this.prefix}Reset">RESET</button>
             `;
@@ -112,7 +112,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
             this.#waitForElm(`#${this.prefix}Enabled`).then((elm) => {
-                console.log('twL stuff added');
+                console.log('Menu stuff added');
                 document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
                 //Automatically include a RESET button to reset all values
                 document.getElementById(this.prefix + "Reset").onclick = function() {
@@ -134,7 +134,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
 
     //Note: The defaultValue should always be a string, and ALL LOCALSTORAGE VALUES ARE STRINGS. This means that checkbox values, for instance, will be either "true" or "false".
     //Adds an item to the menu. Options: description: String, a very short description;  lsName: String, the name used for localStorage retrieval/storage (also the id name), will be automatically prefixed by the prefix;  type: any of the standard HTML input types;  level: Integer, the indentation of the item, where 0 is no indentation;  defaultValue: Self explanatory, the value if the item was not set or was reset
-    addItem(description, lsName, type, level, defaultValue) {
+    addItem(description, lsName, type, level, defaultValue, options) {
         let idName = this.prefix + lsName;
         this.#defaults.push([idName, defaultValue, (type == "checkbox")]); //Checkboxes are... "special." (elem.value doesn't work on them, they require elem.checked)
         if (localStorage.getItem(idName == null)) {
@@ -142,18 +142,23 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         }
         window.gmenu.allLS.push([idName, (type == "checkbox")]);
         if (type !== "checkbox") {
-            this.html += `
+            this.html += (options == undefined) ? `
             <span>${description}</span>
             <input id="${idName}" type="${type}" onchange="localStorage.setItem(${idName}, this.value)" style="
                 text-indent: ${level}rem
             "><br>
+            ` : `
+            <span>${description}</span>
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem(${idName}, this.value)" style="
+                text-indent: ${level}rem
+            " ${options}><br>
             `;
         } else { //if (type == "checkbox")
             this.html += `
             <span>${description}</span>
             <input id="${idName}" type="${type}" onchange="localStorage.setItem(${idName}, this.checked)" style="
-                width: 5%;
-                height: 5%;
+                width: 30px;
+                height: 30px;
                 text-indent: ${level}rem;
             "><br>
             `;
@@ -181,8 +186,8 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
     }
 
     //Adds a button to the menu. Options: title: String, the button's title; fn: A function to be run when the button is clicked
-    addButton(title, fn) {
-        this.html += `<button id="${this.prefix}${title}">${title}</button>`;
+    addButton(title, fn, options) {
+        this.html += (options == undefined) ? `<button id="${this.prefix}${title}">${title}</button>` : `<button id="${this.prefix}${title}" ${options}>${title}</button>`;
         document.getElementById(this.prefix + title).onclick = fn;
         this.updateHTML();
     }
