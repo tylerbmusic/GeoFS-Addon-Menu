@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.1.2
+// @version      0.1.3
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -103,7 +103,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             window.gmenu.allHTML[this.htmlIndex] = `
             <h1>${this.name}</h1>
             <span>Enabled: </span>
-            <input id="${this.prefix}Enabled" type="checkbox" checked="${localStorage.getItem(this.prefix + "Enabled")}" onchange="localStorage.setItem('${this.prefix}Enabled', this.checked)" style="width: 30px; height: 30px;"><br>
+            <input id="${this.prefix}Enabled" type="checkbox" checked="${localStorage.getItem(this.prefix + "Enabled") == "true"}" onchange="localStorage.setItem('${this.prefix}Enabled', this.checked)" style="width: 30px; height: 30px;"><br>
             ${this.html}
             <button id="${this.prefix}Reset">RESET</button>
             `;
@@ -125,6 +125,8 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                             document.getElementById(currD[0]).value = currD[1];
                         }
                     }
+                    window.gmenu.toggleMenu();
+                    window.gmenu.toggleMenu(); //Reload the menu
                 }; //End onclick function
             });
             return true;
@@ -144,19 +146,19 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         if (type !== "checkbox") {
             this.html += (options == undefined) ? `
             <span>${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem(${idName}, this.value)" style="
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" style="
                 text-indent: ${level}rem
             "><br>
             ` : `
             <span>${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem(${idName}, this.value)" style="
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" style="
                 text-indent: ${level}rem
             " ${options}><br>
             `;
         } else { //if (type == "checkbox")
             this.html += `
             <span>${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem(${idName}, this.checked)" style="
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.checked)" style="
                 width: 30px;
                 height: 30px;
                 text-indent: ${level}rem;
@@ -176,7 +178,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         }
         window.gmenu.allLS.push([idName, false]);
         this.html += `<span>${description}</span>
-        <input id="${idName}" type="text" onchange="localStorage.setItem(${idName}, this.value)" style="text-indent: ${level}rem"><br>`;
+        <input id="${idName}" type="text" onchange="localStorage.setItem('${idName}', this.value)" style="text-indent: ${level}rem"><br>`;
         this.updateHTML();
         function t(event) { //I used 't' for the function name for no particular reason
             if (event.key == localStorage.getItem(idName) || event.code == localStorage.getItem(idName)) { //The user can either type in the key or the code
