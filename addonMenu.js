@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.1.1
+// @version      0.1.2
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -44,9 +44,9 @@ window.gmenu.compileAllHTML = function() {
 }
 
 window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, depending on how big you think my ego is. I put the class in the window scope for easy access.
-    defaults = [];
     //Calling the constructor should automatically create the menu button. Options: name: A string, the name of your addon; prefix: A string, a short unique identifier for your addon which will be used for localStorage
     constructor(name, prefix) {
+        this.defaults = [];
         this.name = name;
         this.prefix = prefix;
         if (!window.gmenu.isGMenuInit) {
@@ -180,6 +180,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         this.updateHTML();
         function t(event) { //I used 't' for the function name for no particular reason
             if (event.key == localStorage.getItem(idName) || event.code == localStorage.getItem(idName)) { //The user can either type in the key or the code
+                console.log(event.key + " pressed");
                 fn();
             }
         };
