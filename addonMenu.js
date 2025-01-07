@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.1.5
+// @version      0.2
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -178,8 +178,8 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             localStorage.setItem(idName, defaultValue);
         }
         window.gmenu.allLS.push([idName, false]);
-        this.html += `<span>${description}</span>
-        <input id="${idName}" type="text" onchange="localStorage.setItem('${idName}', this.value)" style="text-indent: ${level}rem"><br>`;
+        this.html += `<span style="text-indent: ${level}rem">${description}</span>
+        <input id="${idName}" type="text" onchange="localStorage.setItem('${idName}', this.value)"><br>`;
         this.updateHTML();
         function t(event) { //I used 't' for the function name for no particular reason
             if (event.key == localStorage.getItem(idName) || event.code == localStorage.getItem(idName)) { //The user can either type in the key or the code
