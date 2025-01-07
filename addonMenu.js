@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.1.4
+// @version      0.1.5
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -145,23 +145,24 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         window.gmenu.allLS.push([idName, (type == "checkbox")]);
         if (type !== "checkbox") {
             this.html += (options == undefined) ? `
-            <span>${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" style="
+            <span style="
                 text-indent: ${level}rem
-            "><br>
+            ">${description}</span>
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)"><br>
             ` : `
-            <span>${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" style="
+            <span style="
                 text-indent: ${level}rem
-            " ${options}><br>
+            ">${description}</span>
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" ${options}><br>
             `;
         } else { //if (type == "checkbox")
             this.html += `
-            <span>${description}</span>
+            <span style="
+                text-indent: ${level}rem
+            ">${description}</span>
             <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.checked)" style="
                 width: 30px;
                 height: 30px;
-                text-indent: ${level}rem;
             "><br>
             `;
         }
