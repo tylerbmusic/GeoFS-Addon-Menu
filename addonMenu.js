@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.1.3
+// @version      0.1.4
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -28,7 +28,7 @@ window.gmenu.toggleMenu = function() {
         window.gmenu.menuDiv.style.display = "block";
         for (let i = 0; i < window.gmenu.allLS.length; i++) {
             let currLS = window.gmenu.allLS[i];
-            currLS[1] ? document.getElementById(currLS[0]).checked = localStorage.getItem(currLS[0]) : document.getElementById(currLS[0]).value = localStorage.getItem(currLS[0]);
+            currLS[1] ? document.getElementById(currLS[0]).checked = (localStorage.getItem(currLS[0]) == 'true') : document.getElementById(currLS[0]).value = localStorage.getItem(currLS[0]);
         }
     }
 }
