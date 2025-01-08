@@ -1,0 +1,34 @@
+{
+	"manifest_version": 3,
+	"name": "GeoFS Addon Manager",
+	"version": "0.1",
+	"description": "Manage addons for GeoFS",
+	"host_permissions": ["*://www.geo-fs.com/*"],
+	"content_scripts": [
+		{
+			"matches": ["https://www.geo-fs.com/geofs.php*"],
+			"js": ["addonMenu.js"]
+		},
+		{
+			"matches": ["https://www.geo-fs.com/geofs.php*"],
+			"js": ["script.js"],
+			"run_at": "document_idle"
+		}
+	],
+	"icons": {
+		"64": "./geofs.png"
+	},
+	"web_accessible_resources": [
+		{
+			"resources": ["addons/*", "addons.json", "index.html", "utils.js"],
+			"matches": ["https://www.geo-fs.com/*"]
+		}
+	],
+	"permissions": ["scripting", "storage"],
+	"action": {
+		"default_popup": "index.html",
+		"default_icon": {
+			"64": "./geofs.png"
+		}
+	}
+}

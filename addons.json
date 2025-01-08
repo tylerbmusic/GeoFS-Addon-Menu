@@ -1,0 +1,50 @@
+[
+	{
+		"name": "Slew Mode",
+		"description": "Slew mode from FSX for GeoFS",
+		"version": "1.0",
+		"script": "slewmode.js",
+		"author": "tylerbmusic",
+		"repository": "https://github.com/tylerbmusic/GeoFS-Slew-Mode"
+	},
+	{
+		"name": "GPWS Callouts",
+		"description": "Ground Proximity Warning System Callouts",
+		"version": "1.0",
+		"script": "gpws.js",
+		"author": "tylerbmusic",
+		"repository": "https://github.com/tylerbmusic/GeoFS-GPWS-Callouts"
+	},
+	{
+		"name": "Landing Stats",
+		"description": "Addon that shows landing stats like vertical speed, landing rate, and more",
+		"version": "1.0",
+		"script": "landingstats.js",
+		"author": "tylerbmusic",
+		"repository": "https://github.com/tylerbmusic/GeoFS-Landing-Stats/"
+	},
+	{
+		"name": "FPV",
+		"description": "Flight Path Vector to show where the aircraft is going",
+		"version": "1.0",
+		"script": "fpv.js",
+		"author": "tylerbmusic",
+		"repository": "https://github.com/tylerbmusic/GeoFS-Flight-Path-Vector"
+	},
+	{
+		"name": "pushback",
+		"description": "Pushback addon for GeoFS",
+		"version": "1.0",
+		"script": "pushback.js",
+		"author": "TotallyRealElonMusk",
+		"repository": "https://github.com/TotallyRealElonMusk/GeoFS-Pushback/"
+	},
+	{
+		"name": "Altimeter",
+		"description": "Altimeter that shows altitude above ground level",
+		"version": "1.0",
+		"script": "altimeter.js",
+		"author": "Chiroyce1",
+		"repository": "https://github.com/Chiroyce1/geofs-addons"
+	}
+]
