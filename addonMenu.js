@@ -115,7 +115,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                 console.log('Menu stuff added');
                 document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
                 //Automatically include a RESET button to reset all values
-                document.getElementById(this.prefix + "Reset").onclick = function() {
+                document.getElementById(this.prefix + "Reset").addEventListener("click", function() {
                     console.log(this.prefix + " reset"); //debugging
                     for (let i = 0; i < this.defaults.length; i++) {
                         let currD = this.defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
@@ -128,8 +128,8 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                     }
                     window.gmenu.toggleMenu();
                     window.gmenu.toggleMenu(); //Reload the menu
-                }; //End onclick function
-                console.log(document.getElementById(this.prefix + "Reset").onclick); //debugging
+                }); //End onclick function
+                //console.log(document.getElementById(this.prefix + "Reset").onclick); //debugging
             });
             return true;
         }
