@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.2
+// @version      0.2.1
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -111,11 +111,12 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             if (localStorage.getItem(this.prefix + "Enabled") == null) {
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
-            this.#waitForElm(`#${this.prefix}Enabled`).then((elm) => {
+            this.#waitForElm(`#${this.prefix}Reset`).then((elm) => {
                 console.log('Menu stuff added');
                 document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
                 //Automatically include a RESET button to reset all values
                 document.getElementById(this.prefix + "Reset").onclick = function() {
+                    console.log(this.prefix + " reset"); //debugging
                     for (let i = 0; i < this.defaults.length; i++) {
                         let currD = this.defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
                         localStorage.setItem(currD[0], currD[1]);
@@ -128,6 +129,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                     window.gmenu.toggleMenu();
                     window.gmenu.toggleMenu(); //Reload the menu
                 }; //End onclick function
+                console.log(document.getElementById(this.prefix + "Reset").onclick); //debugging
             });
             return true;
         }
@@ -192,9 +194,9 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
 
     //Adds a button to the menu. Options: title: String, the button's title; fn: A function to be run when the button is clicked
     addButton(title, fn, options) {
-        this.html += (options == undefined) ? `<button id="${this.prefix}${title}">${title}</button>` : `<button id="${this.prefix}${title}" ${options}>${title}</button>`;
-        document.getElementById(this.prefix + title).onclick = fn;
+        this.html += `<button id="${this.prefix}${title}" ${options || ""}>${title}</button>`;
         this.updateHTML();
+        document.getElementById(this.prefix + title).onclick = fn;
     }
 
     //Adds a header of the specified level (from 1 to 6, but it is recommended to start at 2 as h1 is used for the addon titles)
