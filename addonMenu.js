@@ -18,6 +18,26 @@
     window.gmenu.allHTML = []; //All HTML blocks
     window.gmenu.allLS = []; //All localStorage values (it's a 2d array: [lsValue_str, isCheckbox_bool])
 })();
+window.gmenu.waitForElm = function(selector) {
+        return new Promise(resolve => {
+            if (document.querySelector(selector)) {
+                return resolve(document.querySelector(selector));
+            }
+
+            const observer = new MutationObserver(mutations => {
+                if (document.querySelector(selector)) {
+                    observer.disconnect();
+                    resolve(document.querySelector(selector));
+                }
+            });
+
+            // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        });
+    };
 //Function to open/close the menu
 window.gmenu.toggleMenu = function() {
     if (window.gmenu.isOpen) {
@@ -55,26 +75,6 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         this.html = ``; //This HTML will be enclosed in a Div; Instead of adding to the main HTML directly, methods add to this HTML.
         this.htmlIndex = window.gmenu.allHTML.length; //This instance's index in the allHTML array
     }
-    #waitForElm(selector) {
-        return new Promise(resolve => {
-            if (document.querySelector(selector)) {
-                return resolve(document.querySelector(selector));
-            }
-
-            const observer = new MutationObserver(mutations => {
-                if (document.querySelector(selector)) {
-                    observer.disconnect();
-                    resolve(document.querySelector(selector));
-                }
-            });
-
-            // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-        });
-    }
 
     //Called automatically, initializes the button, menu div, and a couple of other things
     initialize() {
@@ -111,7 +111,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             if (localStorage.getItem(this.prefix + "Enabled") == null) {
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
-            this.#waitForElm(`#${this.prefix}Reset`).then((elm) => {
+            window.waitForElm(`#${this.prefix}Reset`).then((elm) => {
                 console.log('Menu stuff added');
                 document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
                 //Automatically include a RESET button to reset all values
