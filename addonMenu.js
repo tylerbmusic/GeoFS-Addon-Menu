@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.2.4
+// @version      0.3
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -197,7 +197,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
 
     //Adds a button to the menu. Options: title: String, the button's title; fn: A function to be run when the button is clicked
     addButton(title, fn, options) {
-        this.html += `<button id="${this.prefix}${title}" ${options || ""}>${title}</button>`;
+        this.html += `<button id="${this.prefix}${title}" ${options || ""}>${title}</button><br>`;
         this.updateHTML();
         document.getElementById(this.prefix + title).onclick = fn;
     }
