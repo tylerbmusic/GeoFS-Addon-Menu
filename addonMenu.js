@@ -111,7 +111,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             if (localStorage.getItem(this.prefix + "Enabled") == null) {
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
-            window.waitForElm(`#${this.prefix}Reset`).then((elm) => {
+            window.gmenu.waitForElm(`#${this.prefix}Reset`).then((elm) => {
                 console.log('Menu stuff added');
                 document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
                 //Automatically include a RESET button to reset all values
