@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.2.2
+// @version      0.2.3
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy
 // @match        https://geo-fs.com/geofs.php*
@@ -19,25 +19,25 @@
     window.gmenu.allLS = []; //All localStorage values (it's a 2d array: [lsValue_str, isCheckbox_bool])
 })();
 window.gmenu.waitForElm = function(selector) {
-        return new Promise(resolve => {
+    return new Promise(resolve => {
+        if (document.querySelector(selector)) {
+            return resolve(document.querySelector(selector));
+        }
+
+        const observer = new MutationObserver(mutations => {
             if (document.querySelector(selector)) {
-                return resolve(document.querySelector(selector));
+                observer.disconnect();
+                resolve(document.querySelector(selector));
             }
-
-            const observer = new MutationObserver(mutations => {
-                if (document.querySelector(selector)) {
-                    observer.disconnect();
-                    resolve(document.querySelector(selector));
-                }
-            });
-
-            // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
         });
-    };
+
+        // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    });
+};
 //Function to open/close the menu
 window.gmenu.toggleMenu = function() {
     if (window.gmenu.isOpen) {
@@ -112,24 +112,27 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
             window.gmenu.waitForElm(`#${this.prefix}Reset`).then((elm) => {
-                console.log('Menu stuff added');
-                document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
-                //Automatically include a RESET button to reset all values
-                document.getElementById(this.prefix + "Reset").addEventListener("click", function() {
-                    console.log(this.prefix + " reset"); //debugging
-                    for (let i = 0; i < this.defaults.length; i++) {
-                        let currD = this.defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
-                        localStorage.setItem(currD[0], currD[1]);
-                        if (currD[2]) { //if it's a checkbox
-                            document.getElementById(currD[0]).checked = currD[1];
-                        } else {
-                            document.getElementById(currD[0]).value = currD[1];
+                setTimeout(() => {
+                    console.log('Menu stuff added');
+                    document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
+                    //Automatically include a RESET button to reset all values
+                    console.log(document.getElementById(this.prefix + "Reset"));
+                    document.getElementById(this.prefix + "Reset").addEventListener("click", function() {
+                        console.log(this.prefix + " reset"); //debugging
+                        for (let i = 0; i < this.defaults.length; i++) {
+                            let currD = this.defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
+                            localStorage.setItem(currD[0], currD[1]);
+                            if (currD[2]) { //if it's a checkbox
+                                document.getElementById(currD[0]).checked = currD[1];
+                            } else {
+                                document.getElementById(currD[0]).value = currD[1];
+                            }
                         }
-                    }
-                    window.gmenu.toggleMenu();
-                    window.gmenu.toggleMenu(); //Reload the menu
-                }); //End onclick function
-                //console.log(document.getElementById(this.prefix + "Reset").onclick); //debugging
+                        window.gmenu.toggleMenu();
+                        window.gmenu.toggleMenu(); //Reload the menu
+                    }); //End onclick function
+                    //console.log(document.getElementById(this.prefix + "Reset").onclick); //debugging
+                }, 500);
             });
             return true;
         }
