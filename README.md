@@ -43,17 +43,17 @@ Paste the code below into your script(s) or use the entire extension
 
 ```javascript
 if (!window.gmenu || !window.GMenu) {
-	fetch(
-		"https://raw.githubusercontent.com/tylerbmusic/GeoFS-Addon-Menu/refs/heads/main/addonMenu.js"
-	)
-		.then((response) => response.text())
-		.then((script) => {
-			eval(script);
-		})
-		.then(() => {
-			setTimeout(afterGMenu, 100);
-		});
-}
+    fetch(
+        "https://raw.githubusercontent.com/tylerbmusic/GeoFS-Addon-Menu/refs/heads/main/addonMenu.js"
+    )
+        .then((response) => response.text())
+        .then((script) => {
+        eval(script);
+    })
+        .then(() => {
+        setTimeout(afterGMenu, 101);
+    });
+} else afterGMenu()
 
 function afterGMenu() {
 	// Setup goes here
