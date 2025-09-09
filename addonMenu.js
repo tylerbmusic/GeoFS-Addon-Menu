@@ -239,38 +239,24 @@ class GMenu {
 }
 class GMenuItem {
     constructor(description, lsName, type, level, defaultValue, options) {
-        arguments.forEach()
+        this.$element = $("<div/>");
+        this.defaults = [];
+        this.name = name;
+        this.prefix = prefix;
+        this.htmlIndex = window.gmenu.allHTML.length;
     }
-    addItem(description, lsName, type, level, defaultValue, options) {
-        let idName = this.prefix + lsName;
+    addSection(description, lsName, type, level, defaultValue, options = "") {
+        const idName = this.prefix + lsName;
         this.defaults.push([idName, defaultValue, (type == "checkbox")]); //Checkboxes are... "special." (elem.value doesn't work on them, they require elem.checked)
-        if (localStorage.getItem(idName) == null) {
-            localStorage.setItem(idName, defaultValue);
-        }
+        localStorage.getItem(idName) == null && localStorage.setItem(idName, defaultValue);
         window.gmenu.allLS.push([idName, (type == "checkbox")]);
-        if (type !== "checkbox") {
-            this.html += (options == undefined) ? `
-            <span style="
-                text-indent: ${level}rem
-            ">${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)"><br>
-            ` : `
-            <span style="
-                text-indent: ${level}rem
-            ">${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" ${options}><br>
-            `;
-        } else { //if (type == "checkbox")
-            this.html += `
-            <span style="
-                text-indent: ${level}rem
-            ">${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.checked)" style="
-                width: 30px;
-                height: 30px;
-            "><br>
-            `;
-        }
-        this.updateHTML();
+        this.$element.append(`<span style="text-indent: ${level}rem">${description}</span>
+        <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" ${type == "checkbox" ? "style="width: 30px; height: 30px;" : options}> // shorthands huge conditional for checkboxes
+        <br>`);
+        this.updateHTML(); // @todo - replace this with smth less inefficient
+        return this;
+    }
+    addToMenu(panel = "#addonMenu") {
+        return $(panel).append(this.$element), this;
     }
 }
