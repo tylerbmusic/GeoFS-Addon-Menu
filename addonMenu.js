@@ -208,3 +208,69 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         this.updateHTML();
     }
 }
+window.fireBasicEvent("GMenu");
+class GMenu {
+    static #instance;
+    constructor() {
+        if (GMenu.#instance) return GMenu.#instance;
+        GMenu.#instance = this;
+        window.executeOnEventDone("geofsInitialized", this.init);
+    }
+    button;
+    init() { // uses jQuery because jQuery is just better
+        this.$button = $("<div/>", {class: "mdl-button mdl-js-button geofs-f-standard-ui"})
+            .attr({
+                id: "addonMenuButton",
+                "data-toggle-panel": "#addonMenu" // functions as an onclick
+            })
+            .css("padding", "0px")
+            .html(`<img src="https://raw.githubusercontent.com/tylerbmusic/GPWS-files_geofs/refs/heads/main/s_icon.png" style="width: 30px">`)
+            .appendTo(".geofs-ui-bottom");
+        this.$menu = $("<div/>", {class: "geofs-list geofs-toggle-panel geofs-preference-list geofs-preferences"})
+            .attr({id: "addonMenu"})
+            .css({
+                zIndex: "100",
+                position: "fixed",
+                width: "40%"
+            })
+            .appendTo(".geofs-ui-left");
+    }
+    
+}
+class GMenuItem {
+    constructor(description, lsName, type, level, defaultValue, options) {
+        arguments.forEach()
+    }
+    addItem(description, lsName, type, level, defaultValue, options) {
+        let idName = this.prefix + lsName;
+        this.defaults.push([idName, defaultValue, (type == "checkbox")]); //Checkboxes are... "special." (elem.value doesn't work on them, they require elem.checked)
+        if (localStorage.getItem(idName) == null) {
+            localStorage.setItem(idName, defaultValue);
+        }
+        window.gmenu.allLS.push([idName, (type == "checkbox")]);
+        if (type !== "checkbox") {
+            this.html += (options == undefined) ? `
+            <span style="
+                text-indent: ${level}rem
+            ">${description}</span>
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)"><br>
+            ` : `
+            <span style="
+                text-indent: ${level}rem
+            ">${description}</span>
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" ${options}><br>
+            `;
+        } else { //if (type == "checkbox")
+            this.html += `
+            <span style="
+                text-indent: ${level}rem
+            ">${description}</span>
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.checked)" style="
+                width: 30px;
+                height: 30px;
+            "><br>
+            `;
+        }
+        this.updateHTML();
+    }
+}
