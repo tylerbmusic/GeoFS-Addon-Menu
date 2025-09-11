@@ -235,7 +235,9 @@ class GMenu {
             })
             .appendTo(".geofs-ui-left");
     }
-    
+    addPreference(name, defaultVal, type) {
+        if (geofs.preferences.aMenu[name]) return console.error("Unable to initialize preference because it already exists"), false;
+    }
 }
 class GMenuItem {
     constructor(description, lsName, type, level, defaultValue, options) {
