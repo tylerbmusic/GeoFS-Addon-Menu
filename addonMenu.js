@@ -212,6 +212,23 @@ window.fireBasicEvent("addonMenu");
 class AddonMenu {
     static #instance;
     static #pref = geofs.preferences.aMenu;
+    static debugging = !1;
+    static #supportedInputTypes = {
+        "slider": (a, o, n, c) => o.slider("value", c),
+        "select": (a, o, n, c) => geofs.selectDropdown(a, c),
+        "radio-button": function (a, o, n, c) {
+            var u = a.getAttribute("data-matchvalue");
+            u && u == c && o.addClass("is-checked");
+        },
+        "checkbox": (a, o, n, c) => a.checked = c,
+        "radio": function (a, o, n, c) {
+            var d, u = a.getAttribute("data-matchvalue");
+            d = u ? u == c : !0 == c,
+            o.prop("checked", d),
+            d ? o.parent(".mdl-radio, .mdl-switch").addClass("is-checked") : o.parent(".mdl-radio, .mdl-switch").removeClass("is-checked");
+        },
+        "keydetect": null // geofs wants to skip the default for this kind of input, even though the game has none of these
+    };
     constructor() {
         if (addonMenu.#instance) return addonMenu.#instance;
         addonMenu.#instance = this;
@@ -235,14 +252,39 @@ class AddonMenu {
                 width: "40%"
             })
             .appendTo(".geofs-ui-left");
-        geofs.preferences.aMenu = {};
+        var a = 'aMenu';
+        geofs.preferences[a] ||= {}, geofs.preferencesDefault[a] = {}
     }
     addPreference(name, defaultVal, type) {
-        if (geofs.preferences.aMenu[name]) return console.error(`preference conflict at geofs.preferences.aMenu.${name}`), !1;
+        if (geofs.preferences.aMenu[name]) return AddonMenu.debugging && console.error(`geofs.preferences.aMenu.${name} already added`), !0;
         if (geofs.preferencesDefault.aMenu[name]) return console.error(`default preference ${name} conflict`), !1;
         AddonMenu.#pref[name] = geofs.preferencesDefault.aMenu[name] = defaultVal;
     }
-    readPreferences() {}
+    setPreferenceValues = function() {
+        $(this.$menu).find("[data-gespref]").each( (e, a) => {
+            var o = $(a)
+              , n = a.getAttribute("data-type") || a.getAttribute("type");
+            "SELECT" == a.nodeName && (n = "select"),
+            n = n.toLowerCase();
+            for (var r = a.getAttribute("data-gespref").split("."), s = window, e = 0; e < r.length - 1; e++)
+            s = s[r[e]];
+            var c = s[r[e]]
+                , b = AddonMenu.#supportedInputTypes[n];
+            b ? b(a, o, n, c) : b !== null && a.value = c;
+        }
+        ) // WE love jQuery
+    }
+    // this function MUST be run at runtime every single time the game starts
+    //supported input types do NOT persist into localstorage because idk how to safely retrieve callback functions from localStorage without opening eval security holes
+    /**
+     * @description - adds a supported input type to be read at startup
+     * @param 
+     * @param {Function} t - callback function to be executed on init to initialise preference setting
+    **/
+    addSupportedInputType(e, t) {
+        if (!e || !t) return AddonMenu.debugging && console.error("cannot support input type because of invalid type or callback"), !1;
+        AddonMenu.#supportedInputTypes[e] = t;
+    }
 }
 class AddonMenuItem {
     constructor(description, lsName, type, level, defaultValue, options) {
@@ -253,10 +295,7 @@ class AddonMenuItem {
         this.htmlIndex = window.gmenu.allHTML.length;
     }
     addSection(description, lsName, type, level, defaultValue, options = "") {
-        const idName = this.prefix + lsName;
-        this.defaults.push([idName, defaultValue, (type == "checkbox")]); //Checkboxes are... "special." (elem.value doesn't work on them, they require elem.checked)
-        localStorage.getItem(idName) == null && localStorage.setItem(idName, defaultValue);
-        window.gmenu.allLS.push([idName, (type == "checkbox")]);
+        AddonMenu.addPreference(idName, defaultValue, type);
         this.$element.append(`<span style="text-indent: ${level}rem">${description}</span>
         <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" ${type == "checkbox" ? "style="width: 30px; height: 30px;" : options}> // shorthands huge conditional for checkboxes
         <br>`);
