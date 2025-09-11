@@ -208,12 +208,13 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
         this.updateHTML();
     }
 }
-window.fireBasicEvent("GMenu");
-class GMenu {
+window.fireBasicEvent("addonMenu");
+class AddonMenu {
     static #instance;
+    static #pref = geofs.preferences.aMenu;
     constructor() {
-        if (GMenu.#instance) return GMenu.#instance;
-        GMenu.#instance = this;
+        if (addonMenu.#instance) return addonMenu.#instance;
+        addonMenu.#instance = this;
         window.executeOnEventDone("geofsInitialized", this.init);
     }
     button;
@@ -234,12 +235,16 @@ class GMenu {
                 width: "40%"
             })
             .appendTo(".geofs-ui-left");
+        geofs.preferences.aMenu = {};
     }
     addPreference(name, defaultVal, type) {
-        if (geofs.preferences.aMenu[name]) return console.error("Unable to initialize preference because it already exists"), false;
+        if (geofs.preferences.aMenu[name]) return console.error(`preference conflict at geofs.preferences.aMenu.${name}`), !1;
+        if (geofs.preferencesDefault.aMenu[name]) return console.error(`default preference ${name} conflict`), !1;
+        AddonMenu.#pref[name] = geofs.preferencesDefault.aMenu[name] = defaultVal;
     }
+    readPreferences() {}
 }
-class GMenuItem {
+class AddonMenuItem {
     constructor(description, lsName, type, level, defaultValue, options) {
         this.$element = $("<div/>");
         this.defaults = [];
