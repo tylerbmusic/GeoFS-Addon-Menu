@@ -1,312 +1,126 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.3
-// @description  A customizable addon for addons to add a universal menu for all addons to share
-// @author       GGamerGGuy
+// @version      1.0
+// @description  A customizable (and now easily implementable) addon that adds a universal menu for all addons to share
+// @author       GGamerGGuy & meatbroc
 // @match        https://geo-fs.com/geofs.php*
 // @match        https://*.geo-fs.com/geofs.php*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geo-fs.com
 // @grant        none
 // ==/UserScript==
 (function() {
-    'use strict';
-    if (!window.gmenu) {
-        window.gmenu = {};
-    }
-    window.gmenu.isGMenuInit = false; //This will be set to true when the first GMenu is added
-    window.gmenu.isOpen = false; //Whether or not the menu is open
-    window.gmenu.allHTML = []; //All HTML blocks
-    window.gmenu.allLS = []; //All localStorage values (it's a 2d array: [lsValue_str, isCheckbox_bool])
-})();
-window.gmenu.waitForElm = function(selector) {
-    return new Promise(resolve => {
-        if (document.querySelector(selector)) {
-            return resolve(document.querySelector(selector));
+    // static methods are meant to be called by AddonMenu adjacent classes, not the user.
+    // singleton pattern bcs why not lmao
+    class AddonMenu {
+        static #instance;
+        static #pref = (geofs.preferences.aMenu ||= {});
+        static debugging = !1;
+        constructor() {
+            if (AddonMenu.#instance) return AddonMenu.#instance;
+            AddonMenu.#instance = this;
+            window.executeOnEventDone("geofsInitialized", this.init.bind(this)); // .bind forces init to use an AddonMenu instance as the "this" keyword instead of whatever is calling .init
         }
-
-        const observer = new MutationObserver(mutations => {
-            if (document.querySelector(selector)) {
-                observer.disconnect();
-                resolve(document.querySelector(selector));
+        button;
+        init() { // uses jQuery because jQuery is just better
+            this.$button = $("<div/>", {class: "mdl-button mdl-js-button geofs-f-standard-ui"})
+                .attr({
+                    id: "addonMenuButton",
+                    "data-toggle-panel": "#addonMenu", // functions as an onclick
+                    "data-noblur": true, // prevents the menu from closing when u click smth on it
+                })
+                .css("padding", "0px")
+                .html(`<img src="https://raw.githubusercontent.com/tylerbmusic/GPWS-files_geofs/refs/heads/main/s_icon.png" style="width: 30px">`)
+                .appendTo(".geofs-ui-bottom");
+            this.$menu = $("<div/>", {class: "geofs-list geofs-toggle-panel geofs-preference-list geofs-preferences"})
+                .attr({id: "addonMenu"})
+                .css({
+                    zIndex: "100",
+                    position: "fixed",
+                    width: "40%"
+                })
+                .appendTo(".geofs-ui-left");
+            var a = 'aMenu';
+            geofs.preferences[a] ||= {}, geofs.preferencesDefault[a] = {};
+            this.setPreferenceValues();
+            $("<style/>").html(`#addonMenu > checkbox {\nwidth: 30px !important;\nheight: 30px !important;\n}`).appendTo("head"); // css for checkboxes
+            $(window).on("unload", geofs.savePreferences); // save all the stuff
+            window.fireBasicEvent("addonMenuInitialized");
+        }
+        static addPreference(name, defaultVal, type) {
+            if (geofs.preferences.aMenu[name]) return AddonMenu.debugging && console.error(`geofs.preferences.aMenu.${name} already added`), !0;
+            if (geofs.preferencesDefault.aMenu[name]) return console.error(`default preference ${name} conflict`), !1;
+            if (type === "checkbox" && typeof defaultVal !== "boolean") return console.error("checkbox default values can only be true or false"), !1;
+            return AddonMenu.#pref[name] = geofs.preferencesDefault.aMenu[name] = defaultVal, true;
+        }
+        setPreferenceValues = function() {
+            $(this.$menu).find("[data-gespref]").each( (e, a) => {
+                var o = $(a)
+                  , n = a.getAttribute("data-type") || a.getAttribute("type");
+                "SELECT" == a.nodeName && (n = "select"),
+                n = n.toLowerCase();
+                for (var r = a.getAttribute("data-gespref").split("."), s = window, e = 0; e < r.length - 1; e++)
+                s = s[r[e]];
+                var c = s[r[e]]
+                    , b = AddonMenu.#supportedInputTypes[n];
+                b ? b(a, o, n, c) : b !== null && (a.value = c);
             }
-        });
-
-        // If you get "parameter 1 is not of type 'Node'" error, see https://stackoverflow.com/a/77855838/492336
-        observer.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-    });
-};
-//Function to open/close the menu
-window.gmenu.toggleMenu = function() {
-    if (window.gmenu.isOpen) {
-        window.gmenu.isOpen = false;
-        window.gmenu.menuDiv.style.display = "none";
-    } else {
-        window.gmenu.isOpen = true;
-        window.gmenu.menuDiv.style.display = "block";
-        for (let i = 0; i < window.gmenu.allLS.length; i++) {
-            let currLS = window.gmenu.allLS[i];
-            currLS[1] ? document.getElementById(currLS[0]).checked = (localStorage.getItem(currLS[0]) == 'true') : document.getElementById(currLS[0]).value = localStorage.getItem(currLS[0]);
+            ) // WE love jQuery
         }
-    }
-}
-
-window.gmenu.compileAllHTML = function() {
-    window.gmenu.menuDiv.innerHTML = ``; //Clear the HTML to refresh it
-    for (let i = 0; i < window.gmenu.allHTML.length; i++) {
-        let h = window.gmenu.allHTML[i]; //Current block of HTML
-        window.gmenu.menuDiv.innerHTML += `<div>`; //Inner div
-        window.gmenu.menuDiv.innerHTML += h;
-        window.gmenu.menuDiv.innerHTML += `<div style="background: darkgray; height: 2px; margin: 10px;"></div></div>`; //Horizontal rule and div end (I would use the <hr> element but I think this is a little nicer and more visible)
-    }
-}
-
-window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, depending on how big you think my ego is. I put the class in the window scope for easy access.
-    //Calling the constructor should automatically create the menu button. Options: name: A string, the name of your addon; prefix: A string, a short unique identifier for your addon which will be used for localStorage
-    constructor(name, prefix) {
-        this.defaults = [];
-        this.name = name;
-        this.prefix = prefix;
-        if (!window.gmenu.isGMenuInit) {
-            this.initialize();
-        }
-        this.html = ``; //This HTML will be enclosed in a Div; Instead of adding to the main HTML directly, methods add to this HTML.
-        this.htmlIndex = window.gmenu.allHTML.length; //This instance's index in the allHTML array
-    }
-
-    //Called automatically, initializes the button, menu div, and a couple of other things
-    initialize() {
-        window.gmenu.isGMenuInit = true; //Prevent other instances from initializing this window
-        var bottomDiv = document.getElementsByClassName('geofs-ui-bottom')[0];
-        window.gmenu.btn = document.createElement('div');
-        window.gmenu.btn.id = "gamenu";
-        window.gmenu.btn.classList = "mdl-button mdl-js-button geofs-f-standard-ui";
-        window.gmenu.btn.style.padding = "0px";
-        bottomDiv.appendChild(window.gmenu.btn);
-        window.gmenu.btn.innerHTML = `<img src="https://raw.githubusercontent.com/tylerbmusic/GPWS-files_geofs/refs/heads/main/s_icon.png" style="width: 30px">`;
-        document.getElementById("gamenu").onclick = () => {window.gmenu.toggleMenu();};
-        if (!window.gmenu.menuDiv) {
-            window.gmenu.menuDiv = document.createElement('div');
-            window.gmenu.menuDiv.id = "ggamergguyDiv";
-            window.gmenu.menuDiv.classList = "geofs-list geofs-toggle-panel geofs-preference-list geofs-preferences";
-            window.gmenu.menuDiv.style.zIndex = "100";
-            window.gmenu.menuDiv.style.position = "fixed";
-            window.gmenu.menuDiv.style.width = "40%";
-            document.body.appendChild(window.gmenu.menuDiv);
-        }
-    }
-
-    updateHTML() {
-        if (!window.gmenu.isOpen) {
-            window.gmenu.allHTML[this.htmlIndex] = `
-            <h1>${this.name}</h1>
-            <span>Enabled: </span>
-            <input id="${this.prefix}Enabled" type="checkbox" checked="${localStorage.getItem(this.prefix + "Enabled") == "true"}" onchange="localStorage.setItem('${this.prefix}Enabled', this.checked)" style="width: 30px; height: 30px;"><br>
-            ${this.html}
-            <button id="${this.prefix}Reset">RESET</button>
-            `;
-            window.gmenu.compileAllHTML();
-            if (localStorage.getItem(this.prefix + "Enabled") == null) {
-                localStorage.setItem(this.prefix + "Enabled", "true");
-            }
-            window.gmenu.waitForElm(`#${this.prefix}Reset`).then((elm) => {
-                setTimeout(() => {
-                    console.log('Menu stuff added');
-                    document.getElementById(this.prefix + "Enabled").checked = (localStorage.getItem(this.prefix + "Enabled") == "true");
-                    //Automatically include a RESET button to reset all values
-                    console.log(document.getElementById(this.prefix + "Reset"));
-                    document.getElementById(this.prefix + "Reset").addEventListener("click", () => {
-                        console.log(this.prefix + " reset"); //debugging
-                        for (let i = 0; i < this.defaults.length; i++) {
-                            let currD = this.defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
-                            localStorage.setItem(currD[0], currD[1]);
-                            if (currD[2]) { //if it's a checkbox
-                                document.getElementById(currD[0]).checked = currD[1];
-                            } else {
-                                document.getElementById(currD[0]).value = currD[1];
-                            }
-                        }
-                        window.gmenu.toggleMenu();
-                        window.gmenu.toggleMenu(); //Reload the menu
-                    }); //End onclick function
-                    //console.log(document.getElementById(this.prefix + "Reset").onclick); //debugging
-                }, 500);
-            });
-            return true;
-        }
-        return false;
-    } //End updateHTML()
-
-    //Note: The defaultValue should always be a string, and ALL LOCALSTORAGE VALUES ARE STRINGS. This means that checkbox values, for instance, will be either "true" or "false".
-    //Adds an item to the menu. Options: description: String, a very short description;  lsName: String, the name used for localStorage retrieval/storage (also the id name), will be automatically prefixed by the prefix;  type: any of the standard HTML input types;  level: Integer, the indentation of the item, where 0 is no indentation;  defaultValue: Self explanatory, the value if the item was not set or was reset
-    addItem(description, lsName, type, level, defaultValue, options) {
-        let idName = this.prefix + lsName;
-        this.defaults.push([idName, defaultValue, (type == "checkbox")]); //Checkboxes are... "special." (elem.value doesn't work on them, they require elem.checked)
-        if (localStorage.getItem(idName) == null) {
-            localStorage.setItem(idName, defaultValue);
-        }
-        window.gmenu.allLS.push([idName, (type == "checkbox")]);
-        if (type !== "checkbox") {
-            this.html += (options == undefined) ? `
-            <span style="
-                text-indent: ${level}rem
-            ">${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)"><br>
-            ` : `
-            <span style="
-                text-indent: ${level}rem
-            ">${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" ${options}><br>
-            `;
-        } else { //if (type == "checkbox")
-            this.html += `
-            <span style="
-                text-indent: ${level}rem
-            ">${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.checked)" style="
-                width: 30px;
-                height: 30px;
-            "><br>
-            `;
-        }
-        this.updateHTML();
-    }
-
-    //Adds a keyboard shortcut to the menu (this method is similar to the addItem method, but adds a keydown listener and function).
-    addKBShortcut(description, lsName, level, defaultValue, fn) {
-        let idName = this.prefix + lsName;
-        this.defaults.push([idName, defaultValue, false]);
-        if (localStorage.getItem(idName) == null) {
-            console.log(idName + " is null, setting to " + defaultValue);
-            localStorage.setItem(idName, defaultValue);
-        }
-        window.gmenu.allLS.push([idName, false]);
-        this.html += `<span style="text-indent: ${level}rem">${description}</span>
-        <input id="${idName}" type="text" onchange="localStorage.setItem('${idName}', this.value)"><br>`;
-        this.updateHTML();
-        function t(event) { //I used 't' for the function name for no particular reason
-            if (event.key == localStorage.getItem(idName) || event.code == localStorage.getItem(idName)) { //The user can either type in the key or the code
-                console.log(event.key + " pressed");
-                fn();
-            }
+        // this function MUST be run at runtime every single time the game starts to ensure the input is added
+        // supported input types do NOT persist into localstorage because idk how to safely retrieve callback functions from localStorage without opening eval security holes
+        static #supportedInputTypes = {
+            "slider": (a, o, n, c) => o.slider("value", c),
+            "select": (a, o, n, c) => geofs.selectDropdown(a, c),
+            "radio-button": function (a, o, n, c) {
+                var u = a.getAttribute("data-matchvalue");
+                u && u == c && o.addClass("is-checked");
+            },
+            "checkbox": (a, o, n, c) => a.checked = c,
+            "radio": function (a, o, n, c) {
+                var d, u = a.getAttribute("data-matchvalue");
+                d = u ? u == c : !0 == c,
+                o.prop("checked", d),
+                d ? o.parent(".mdl-radio, .mdl-switch").addClass("is-checked") : o.parent(".mdl-radio, .mdl-switch").removeClass("is-checked");
+            },
+            "keydetect": null // geofs wants to skip the default for this kind of input, even though the game has none of these
         };
-        document.addEventListener("keydown", t);
-    }
-
-    //Adds a button to the menu. Options: title: String, the button's title; fn: A function to be run when the button is clicked
-    addButton(title, fn, options) {
-        this.html += `<button id="${this.prefix}${title}" ${options || ""}>${title}</button><br>`;
-        this.updateHTML();
-        document.getElementById(this.prefix + title).onclick = fn;
-    }
-
-    //Adds a header of the specified level (from 1 to 6, but it is recommended to start at 2 as h1 is used for the addon titles)
-    addHeader(level, text) {
-        this.html += `<h${level}>${text}</h${level}>`;
-        this.updateHTML();
-    }
-}
-window.fireBasicEvent("addonMenu");
-// static methods are meant to be called by AddonMenu adjacent classes, not the user.
-class AddonMenu {
-    static #instance;
-    static #pref = geofs.preferences.aMenu ||= {};
-    static debugging = !1;
-    constructor() {
-        if (AddonMenu.#instance) return AddonMenu.#instance;
-        AddonMenu.#instance = this;
-        window.executeOnEventDone("geofsInitialized", this.init.bind(this)); // .bind forces init to use an AddonMenu instance as the "this" keyword instead of whatever is calling .init
-    }
-    button;
-    init() { // uses jQuery because jQuery is just better
-        this.$button = $("<div/>", {class: "mdl-button mdl-js-button geofs-f-standard-ui"})
-            .attr({
-                id: "addonMenuButton",
-                "data-toggle-panel": "#addonMenu" // functions as an onclick
-            })
-            .css("padding", "0px")
-            .html(`<img src="https://raw.githubusercontent.com/tylerbmusic/GPWS-files_geofs/refs/heads/main/s_icon.png" style="width: 30px">`)
-            .appendTo(".geofs-ui-bottom");
-        this.$menu = $("<div/>", {class: "geofs-list geofs-toggle-panel geofs-preference-list geofs-preferences"})
-            .attr({id: "addonMenu"})
-            .css({
-                zIndex: "100",
-                position: "fixed",
-                width: "40%"
-            })
-            .appendTo(".geofs-ui-left");
-        var a = 'aMenu';
-        geofs.preferences[a] ||= {}, geofs.preferencesDefault[a] = {};
-        this.setPreferenceValues();
-        $("<style/>").html(`#addonMenu > checkbox {\nwidth: 30px !important;\nheight: 30px !important;\n}`).appendTo("head"); // css for checkboxes
-    }
-    static addPreference(name, defaultVal, type) {
-        if (geofs.preferences.aMenu[name]) return AddonMenu.debugging && console.error(`geofs.preferences.aMenu.${name} already added`), !0;
-        if (geofs.preferencesDefault.aMenu[name]) return console.error(`default preference ${name} conflict`), !1;
-        if (type === "checkbox" && typeof defaultVal !== "boolean") return console.error("checkbox default values can only be true or false"), !1;
-        AddonMenu.#pref[name] = geofs.preferencesDefault.aMenu[name] = defaultVal;
-    }
-    setPreferenceValues = function() {
-        $(this.$menu).find("[data-gespref]").each( (e, a) => {
-            var o = $(a)
-              , n = a.getAttribute("data-type") || a.getAttribute("type");
-            "SELECT" == a.nodeName && (n = "select"),
-            n = n.toLowerCase();
-            for (var r = a.getAttribute("data-gespref").split("."), s = window, e = 0; e < r.length - 1; e++)
-            s = s[r[e]];
-            var c = s[r[e]]
-                , b = AddonMenu.#supportedInputTypes[n];
-            b ? b(a, o, n, c) : b !== null && (a.value = c);
+        /**
+         * @description - adds a supported input type to be read at startup
+         * @param {string} e - HTML input type value
+         * @param {Function} t - callback function to be executed on init to initialise preference setting
+        **/
+        addSupportedInputType(e, t) {
+            if (!e || !t) return AddonMenu.debugging && console.error("cannot support input type because of invalid type or callback"), !1;
+            AddonMenu.#supportedInputTypes[e] = t;
         }
-        ) // WE love jQuery
     }
-    // this function MUST be run at runtime every single time the game starts to ensure the input is added
-    // supported input types do NOT persist into localstorage because idk how to safely retrieve callback functions from localStorage without opening eval security holes
-    static #supportedInputTypes = {
-        "slider": (a, o, n, c) => o.slider("value", c),
-        "select": (a, o, n, c) => geofs.selectDropdown(a, c),
-        "radio-button": function (a, o, n, c) {
-            var u = a.getAttribute("data-matchvalue");
-            u && u == c && o.addClass("is-checked");
-        },
-        "checkbox": (a, o, n, c) => a.checked = c,
-        "radio": function (a, o, n, c) {
-            var d, u = a.getAttribute("data-matchvalue");
-            d = u ? u == c : !0 == c,
-            o.prop("checked", d),
-            d ? o.parent(".mdl-radio, .mdl-switch").addClass("is-checked") : o.parent(".mdl-radio, .mdl-switch").removeClass("is-checked");
-        },
-        "keydetect": null // geofs wants to skip the default for this kind of input, even though the game has none of these
-    };
-    /**
-     * @description - adds a supported input type to be read at startup
-     * @param {string} e - HTML input type value
-     * @param {Function} t - callback function to be executed on init to initialise preference setting
-    **/
-    addSupportedInputType(e, t) {
-        if (!e || !t) return AddonMenu.debugging && console.error("cannot support input type because of invalid type or callback"), !1;
-        AddonMenu.#supportedInputTypes[e] = t;
+    class AddonMenuItem {
+        constructor(name) {
+            this.$element = $("<div/>");
+            this.name = name;
+        }
+        addHeader(level, text) {
+            if (!level || !text) return console.error('required param(s) missing'), !1;
+            return this.$element.append(`<h${level}/>`).text(text), this;
+        }
+        addButton(fn, text, id, options = "") {
+            return $(`<button id="${id}">${text}</button><br>`).click(fn).appendTo(this.$element).attr(options), this;
+        }
+        /**
+         * @description - adds an input to the addon menu. this can be made into a key input for a keyboard shortcut. there's no method for this so just put the onclick in the options param
+         * @param {object} options - HTML options object. it's rlly just whatever jQuery's .attr will accept. try not to override style.height and style.width
+        **/
+        addInput(description, type, level = 0, prefId, defaultValue, options = "") {
+            AddonMenu.addPreference(prefId, defaultValue, type);
+            const inp = $(`<input type="${type}" data-gespref="${geofs.preferences.aMenu[prefId]}">`);
+            inp.attr(options); // shorthands huge conditional for checkboxes
+            this.$element.append(`<span style="text-indent: ${level}rem">${description}</span>`, inp, '<br>');
+            return this;
+        }
+        addToMenu(panel = "#addonMenu") {
+            return $(panel).append(this.$element), this;
+        }
     }
-}
-class AddonMenuItem {
-    constructor(name) {
-        this.$element = $("<div/>");
-        this.name = name;
-    }
-    /**
-     * @param {object} options - HTML options object. it's rlly just whatever jQuery's .attr will accept. try not to override style.height and style.width
-    **/
-    addSection(description, type, level = 0, prefId, defaultValue, options = "") {
-        AddonMenu.addPreference(prefId, defaultValue, type);
-        const inp = $(`<input type="${type}" data-gespref="${geofs.preferences.aMenu[prefId]}">`);
-        inp.attr(options); // shorthands huge conditional for checkboxes
-        this.$element.append(`<span style="text-indent: ${level}rem">${description}</span>`, inp, '<br>');
-        return this;
-    }
-    addToMenu(panel = "#addonMenu") {
-        return $(panel).append(this.$element), this;
-    }
-}
-window.AddonMenu = new AddonMenu();
+    window.AddonMenu = new AddonMenu();
+    window.AddonMenuItem = AddonMenuItem;
+})();
