@@ -2,35 +2,6 @@
 
 An all-in-one repository for the GeoFS addon menu, GeoFS addon manager and related scripts.
 
-Curently, the addon manager is in development and is not yet available for public use. The addons that come with the repository dont yet have a usable menu, but can be individually enabled/disabled via the browser extension.
-
-### `addons.json` example:
-
-```json
-	{
-		"name": "Slew Mode",
-		"description": "Slew mode from FSX",
-		"version": "1.0",
-		"script": "slewmode.js",
-		"author": "tylerbmusic",
-		"repository": "https://github.com/tylerbmusic/GeoFS-Slew-Mode"
-
-	},
-```
-
-### `addons.json` schema:
-
-```json
-	{
-		"name": "name of the addon (MUST BE UNIQUE)",
-		"description": "basic description of the addon",
-		"version": "version number for debugging",
-		"script": "slewmode.js // the *.js script that will be loaded into the page",
-		"author": "creator of the addon (github username)",
-		"repository": "link to GitHub repository"
-	},
-```
-
 # Addon Menu Docs
 
 > The `addonMenu.js` script is injected into the page and provides an API for creating a settings menu for addons.
@@ -42,7 +13,7 @@ Paste the code below into your script(s) or use the entire extension
 (see: [loading an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked))
 
 ```javascript
-if (!window.gmenu || !window.GMenu) {
+if (!window.AddonMenu) {
     fetch(
         "https://raw.githubusercontent.com/tylerbmusic/GeoFS-Addon-Menu/refs/heads/main/addonMenu.js"
     )
@@ -51,11 +22,11 @@ if (!window.gmenu || !window.GMenu) {
         eval(script);
     })
         .then(() => {
-        setTimeout(afterGMenu, 101);
+        setTimeout(afterAMenu, 101);
     });
-} else afterGMenu()
+} else afterAMenu()
 
-function afterGMenu() {
+function afterAMenu() {
 	// Setup goes here
 }
 ```
