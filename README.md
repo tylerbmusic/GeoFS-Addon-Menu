@@ -1,12 +1,9 @@
-# GeoFS Addon Menu and Manager
+# GeoFS Addon Menu and Manager Documentation
 
 An all-in-one repository for the GeoFS addon menu, GeoFS addon manager and related scripts.
-
-# Addon Menu Docs
-
 > The `addonMenu.js` script is injected into the page and provides an API for creating a settings menu for addons.
 
-## Initial Setup
+# Initial Setup
 
 Paste the code below into your script(s) or use the entire extension
 
@@ -29,34 +26,83 @@ function afterAMenu() {
 }
 ```
 
-Remove `// Setup goes here`, and in that line, create a variable and initialize it to a `new AddonMenuItem("Your addon name")`.
-For example, `const twLM = new window.AddonMenuItem("Taxiway Lights");` is what I used for my Taxiway Lights addon.
+Remove `// Setup goes here`, and in that line, create a variable and initialise it to a `new AddonMenuItem("Your addon name")`.
 
-## Functions/Methods
+For example, 
+```js
+function afterAMenu() {
+	const twLM = new window.AddonMenuItem("Taxiway Lights");
+	// ...
+}
+```
+is what I used for my Taxiway Lights addon.
 
-To add settings, you can call a few methods.  
-_Note: The defaultValue can be a boolean, string, or really anything that can be stringified. Don't use undefined or null though. For checkboxes it must be a boolean._  
-_Also Note: A title header, an Enabled checkbox, and a reset button are automatically created, so it is not necessary to create them manually._
+---
 
-- `addItem(description, lsName, type, level, defaultValue)`: Adds an item to the menu. Options:
-  - description: String, a very short description;
-  - lsName: String, the name used for localStorage retrieval/storage (also the id name), will be automatically prefixed by the prefix, the first letter should be capitalized;
-  - type: any of the standard HTML input types;
-  - level: Integer, the indentation of the item, where 0 is no indentation;
-  - defaultValue: Self explanatory, the value if the item was not set or was reset.
-  - options: Optional String, additional HTML attributes to add to the element.
-- `addKBShortcut(description, lsName, level, defaultValue, fn)`: Adds a keyboard shortcut to the menu (this method is similar to the addItem method, but adds a keydown listener and function). Shortcut values can either be keys (like 'a', '-', or '$') or codes (like keyA or Minus), but multiple-key shortcuts are not supported. Options:
-  - description: Same as `addItem`
-  - lsName: Same as `addItem`
-  - level: Same as `addItem`
-  - defaultValue: Same as `addItem`
-  - fn: A function to be run when the key is pressed down
-- `addButton(title, fn)`: Adds a button to the menu. Options:
-  - title: String, the button's title;
-  - fn: A function to be run when the button is clicked.
-- `addHeader(level, text)`: Adds a header of the specified level (from 1 to 6, but it is recommended to start at 2 as h1 is used for the addon titles)
+# Functions/Methods
+*Note: parameters that are bolded are **required** parameters*
 
+---
+
+To add to the addon menu, you must first initialise a window.AddonMenuItem class instance.
+
+### Class: window.AddonMenuItem
+
+*Every method in this class returns its 'this' property, allowing for method chaining like so: `new AddonMenuItem('exampleID').addHeader('example', 1).addToMenu()`*
+
+Description: Wrapper for a section of the addon menu
+
+Constructor Params:
+- **id**: Any string. Will become the the id attribute of its $element property.
+- options: Any object that will work in jQuery's .attr() function. Will be applied to the $element property of the AddonMenuItem instance.
+
+Example Call:
+
+```js
+const myItem = new window.AddonMenuItem("coolItem", {class: "epic-item-styles"});
+```
+### Methods:
+- addHeader
+	- Params:
+ 		- **text**: String. text of the header
+   		- **level**: Number or integer coercible string from 1-6. Will determine the <h{level}> element
+     	- options: Object compatible with jQuery's .attr. Will be applied to the header.
+  	- Example:
+  	  ```js
+  	  myItem.addHeader("harmoniousHeader", 1, {id: "harpischord_header"});
+  	  ```
+- addButton
+	- Params:
+		- fn: Onclick function. Not required, but making a button that does nothing is not recommended.
+	  	- text: String. Label of the button.
+   		- id: String. Button's id.
+     	- options: Object compatible with jQuery's .attr. Will be applied to the button.
+  	- Example:
+  	  ```js
+  	  myItem.addButton(() => alert('I'm the biggest button 🗣️💯🗣️💯'), "Banger Button", "biggestButton"/*, optionsGoesHere*/);
+  	  ```
+- addInput
+	- Params:
+		- **prefId**: String (please). Preference identifier that will be used to add a key to geofs.preferences.aMenu and geofs.preferencesDefault.aMenu. Remember what ID you use to add the preference so you can reference it later.
+  		- **defaultValue**: Anything except a function. Value the preference will be initialised with if it doesn't exist already.
+    	- **description**: String or anything coercible to one. Text of the span above the input.
+     	- type: String. Must be a valid type of an HTMLInputElement. Defaults to text.
+      	- level: Number or number coercible string. Text-indentation value.
+      	- options: Object compatible with jQuery's .attr. Will be applied to the input.
+	- Example:
+      ```js
+      myItem.addInput("perspicuousPreference", "vivaciousValue", "dolorous description", null /* will default to text */, "1", {"data-disestablishmentarianism": "anti"});
+      ```
+- addKeyboardShortcut
+     *work in progress*
+- addToMenu
+	- Params:
+ 		- panel: HTML element selector. Defaults to the regular addon menu. Where the AddonMenuItem should be added to.
+   	- Note: This function should be run after all the others to avoid excess DOM manipulation.
+   	- Example:
+   	  ```js
+   	  myItem.addInput('foo', 'bar', 'baz').addToMenu(); // run it last
+   	  ```
 ## Getting values
 
-To get non-checkbox values, use `localStorage.getItem('prefixlsName')` (for example, if I had created a text input with the lsName `Test` and I had constructed the menu with the prefix `ex`, I could get its value by calling `localStorage.getItem('exTest')`.)  
-Since all localStorage values are strings, checkbox items' localStorage values will either be "true" or "false", so to get them, use `(localStorage.getItem('prefixlsName') == 'true')`
+To get values, use geofs.preferences.aMenu. A function may be added for this later to make it more robust.
