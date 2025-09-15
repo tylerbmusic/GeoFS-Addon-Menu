@@ -13,13 +13,11 @@
     // singleton pattern bcs why not lmao
     class AddonMenu {
         static #instance;
-        static #pref;
         constructor() {
             if (AddonMenu.#instance) return AddonMenu.#instance;
             AddonMenu.#instance = this;
-            AddonMenu.#pref = (geofs.preferences.aMenu ||= {});
             this.debugging = !1;
-            this.init();
+            window.executeOnEventDone("geofsInitialized", this.init());
         }
         init() { // uses jQuery because jQuery is just better
             this.$button = $("<div/>", {class: "mdl-button mdl-js-button geofs-f-standard-ui"})
@@ -50,7 +48,7 @@
             if (geofs.preferences.aMenu[name]) return this.debugging && console.error(`geofs.preferences.aMenu.${name} already added`), !1;
             if (geofs.preferencesDefault.aMenu[name]) return console.error(`default preference ${name} conflict`), !1;
             if (type === "checkbox" && typeof defaultVal !== "boolean") return console.error("checkbox default values can only be true or false"), !1;
-            return this.#pref[name] = geofs.preferencesDefault.aMenu[name] = defaultVal, true;
+            return geofs.preferences.aMenu[name] = geofs.preferencesDefault.aMenu[name] = defaultVal, true;
         }
         setPreferenceValues = function() {
             $(this.$menu).find("[data-gespref]").each( (e, a) => {
@@ -61,14 +59,14 @@
                 for (var r = a.getAttribute("data-gespref").split("."), s = window, e = 0; e < r.length - 1; e++)
                 s = s[r[e]];
                 var c = s[r[e]]
-                    , b = AddonMenu.#supportedInputTypes[n];
+                    , b = AddonMenu.supportedInputTypes[n];
                 b ? b(a, o, n, c) : b !== null && (a.value = c);
             }
             ) // WE love jQuery
         }
         // this function MUST be run at runtime every single time the game starts to ensure the input is added
         // supported input types do NOT persist into localstorage because idk how to safely retrieve callback functions from localStorage without opening eval security holes
-        static #supportedInputTypes = {
+        static supportedInputTypes = {
             "slider": (a, o, n, c) => o.slider("value", c),
             "select": (a, o, n, c) => geofs.selectDropdown(a, c),
             "radio-button": function (a, o, n, c) {
@@ -91,7 +89,7 @@
         **/
         addSupportedInputType(e, t) {
             if (!e || !t) return this.debugging && console.error("cannot support input type because of invalid type or callback"), !1;
-            return AddonMenu.#supportedInputTypes[e] === null ? (this.debugging && console.error('input type is intentionally ignored'), !1) : (AddonMenu.#supportedInputTypes[e] = t, !0);
+            return AddonMenu.supportedInputTypes[e] === null ? (this.debugging && console.error('input type is intentionally ignored'), !1) : (AddonMenu.supportedInputTypes[e] = t, !0);
         }
         static populateKeyAssignments = function(e) {
             var t = "";
@@ -150,7 +148,7 @@
         }
         /**
          * @description - adds an input to the addon menu. this can be made into a key input for a keyboard shortcut. there's no method for this so just put the onclick in the options param
-         * @param {object} options - HTML options object. it's rlly just whatever jQuery's .attr will accept. try not to override style.height and style.width
+         * @param {object} options - HTML options object. it's rlly just whatever jQuery's .attr will accept. try not to override style.height and style.width for checkboxes
         **/
         addInput(description, type = "text", level = 0, prefId, defaultValue, options = "") {
             AddonMenu.addPreference(prefId, defaultValue, type);
@@ -164,9 +162,7 @@
          * @param {object} defaultValue - object styled after a geofs.preferencesDefault.keyboard.keys entry, so something like this. { "Toggle Autopilot": { keycode: 65, label: "<A>" }
         **/
         addKeyboardShortcut(prefId, defaultValue, callback) {
-            AddonMenu.addPreference(prefId, defaultValue, "keydetect");
-            AddonMenu.populateKeyAssignments(this.$element);
-            return this;
+            return AddonMenu.addPreference(prefId, defaultValue, "keydetect"), AddonMenu.populateKeyAssignments(this.$element), this;
         }
         addToMenu(panel = "#addonMenu") {
             return $(panel).append(this.$element), this;
@@ -181,9 +177,9 @@
                 try {
                     window.AddonMenu = new AddonMenu();
                     window.AddonMenuItem = AddonMenuItem;
-                    console.log('init')
+                    console.log('addonMenu initialized')
                 } catch (er) {
-                    console.log(er);
+                    console.error(er);
                 }
             })
         }, { once: true });
