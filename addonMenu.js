@@ -13,14 +13,14 @@
     // singleton pattern bcs why not lmao
     class AddonMenu {
         static #instance;
-        static #pref = (geofs.preferences.aMenu ||= {});
+        static #pref;
         constructor() {
             if (AddonMenu.#instance) return AddonMenu.#instance;
             AddonMenu.#instance = this;
+            AddonMenu.#pref = (geofs.preferences.aMenu ||= {});
             this.debugging = !1;
-            window.executeOnEventDone("geofsInitialized", this.init.bind(this)); // .bind forces init to use an AddonMenu instance as the "this" keyword instead of whatever is calling .init
+            this.init();
         }
-        button;
         init() { // uses jQuery because jQuery is just better
             this.$button = $("<div/>", {class: "mdl-button mdl-js-button geofs-f-standard-ui"})
                 .attr({
@@ -50,48 +50,7 @@
             if (geofs.preferences.aMenu[name]) return this.debugging && console.error(`geofs.preferences.aMenu.${name} already added`), !1;
             if (geofs.preferencesDefault.aMenu[name]) return console.error(`default preference ${name} conflict`), !1;
             if (type === "checkbox" && typeof defaultVal !== "boolean") return console.error("checkbox default values can only be true or false"), !1;
-            return AddonMenu.#pref[name] = geofs.preferencesDefault.aMenu[name] = defaultVal, true;
-        }
-        static populateKeyAssignments = function(e) {
-            var t = "";
-            for (var a in geofs.preferences.aMenu.keys) {
-                var o = "keyInput" + geofs.preferences.aMenu.keys[a].keycode;
-                t += '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label"><input id="' + o + '" class="geofs-preferences-key-detect mdl-textfield__input" type="text" data-type="keydetect" data-gespref="geofs.preferences.aMenu.keys.' + a + '" keycode="' + geofs.preferences.aMenu.keys[a].keycode + '" value="' + geofs.preferences.aMenu.keys[a].label + '"/><label class="mdl-textfield__label" for="' + o + '">' + a + "</label></div>"
-            }
-            e.html(t),
-            e.on("click focus", ".geofs-preferences-key-detect", t => {
-                $(".geofs-preference-key-detecting", e).each( (e, t) => {
-                    t.value = t._originalValue,
-                    $(t).removeClass("geofs-preference-key-detecting")
-                }
-                ),
-                t.currentTarget._originalValue = t.currentTarget.value,
-                t.currentTarget.value = "",
-                $(t.currentTarget).addClass("geofs-preference-key-detecting")
-            }
-            ).on("keyup", ".geofs-preferences-key-detect", e => {
-                var t, a = e.currentTarget;
-                $(a).hasClass("geofs-preference-key-detecting") && (27 != e.which ? (t = geofs.preferencesKeycodeLookup[e.which] ? geofs.preferencesKeycodeLookup[e.which] : a.value.toUpperCase(),
-                a.value = t,
-                a.setAttribute("keycode", e.which),
-                geofs.setPreferenceFromInput(a)) : a.value = a._originalValue,
-                $(a).removeClass("geofs-preference-key-detecting"),
-                $(a).blur(),
-                e.stopPropagation(),
-                e.preventDefault())
-            }
-            ).on("keydown", ".geofs-preferences-key-detect", e => {
-                $(e.currentTarget).hasClass("geofs-preference-key-detecting") && 9 == e.which && (e.stopPropagation(),
-                e.preventDefault())
-            }
-            ).on("blur", ".geofs-preferences-key-detect", e => {
-                $(e.currentTarget).hasClass("geofs-preference-key-detecting") && ("" == e.currentTarget.value && (e.currentTarget.value = e.currentTarget._originalValue),
-                $(e.currentTarget).removeClass("geofs-preference-key-detecting"),
-                e.stopPropagation(),
-                e.preventDefault())
-            }
-            ),
-            componentHandler.upgradeDom()
+            return this.#pref[name] = geofs.preferencesDefault.aMenu[name] = defaultVal, true;
         }
         setPreferenceValues = function() {
             $(this.$menu).find("[data-gespref]").each( (e, a) => {
@@ -134,13 +93,55 @@
             if (!e || !t) return this.debugging && console.error("cannot support input type because of invalid type or callback"), !1;
             return AddonMenu.#supportedInputTypes[e] === null ? (this.debugging && console.error('input type is intentionally ignored'), !1) : (AddonMenu.#supportedInputTypes[e] = t, !0);
         }
+        static populateKeyAssignments = function(e) {
+            var t = "";
+            for (var a in geofs.preferences.aMenu.keys) {
+                var o = "keyInput" + geofs.preferences.aMenu.keys[a].keycode;
+                t += '<div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label"><input id="' + o + '" class="geofs-preferences-key-detect mdl-textfield__input" type="text" data-type="keydetect" data-gespref="geofs.preferences.aMenu.keys.' + a + '" keycode="' + geofs.preferences.aMenu.keys[a].keycode + '" value="' + geofs.preferences.aMenu.keys[a].label + '"/><label class="mdl-textfield__label" for="' + o + '">' + a + "</label></div>"
+            }
+            e.html(t),
+            e.on("click focus", ".geofs-preferences-key-detect", t => {
+                $(".geofs-preference-key-detecting", e).each( (e, t) => {
+                    t.value = t._originalValue,
+                    $(t).removeClass("geofs-preference-key-detecting")
+                }
+                ),
+                t.currentTarget._originalValue = t.currentTarget.value,
+                t.currentTarget.value = "",
+                $(t.currentTarget).addClass("geofs-preference-key-detecting")
+            }
+            ).on("keyup", ".geofs-preferences-key-detect", e => {
+                var t, a = e.currentTarget;
+                $(a).hasClass("geofs-preference-key-detecting") && (27 != e.which ? (t = geofs.preferencesKeycodeLookup[e.which] ? geofs.preferencesKeycodeLookup[e.which] : a.value.toUpperCase(),
+                a.value = t,
+                a.setAttribute("keycode", e.which),
+                geofs.setPreferenceFromInput(a)) : a.value = a._originalValue,
+                $(a).removeClass("geofs-preference-key-detecting"),
+                $(a).blur(),
+                e.stopPropagation(),
+                e.preventDefault())
+            }
+            ).on("keydown", ".geofs-preferences-key-detect", e => {
+                $(e.currentTarget).hasClass("geofs-preference-key-detecting") && 9 == e.which && (e.stopPropagation(),
+                e.preventDefault())
+            }
+            ).on("blur", ".geofs-preferences-key-detect", e => {
+                $(e.currentTarget).hasClass("geofs-preference-key-detecting") && ("" == e.currentTarget.value && (e.currentTarget.value = e.currentTarget._originalValue),
+                $(e.currentTarget).removeClass("geofs-preference-key-detecting"),
+                e.stopPropagation(),
+                e.preventDefault())
+            }
+            ),
+            componentHandler.upgradeDom()
+        }
     }
     class AddonMenuItem {
         constructor(name, options = "") {
-            this.$element = $("<div/>").attr(options);
+            this.$element = $("<div/>")
+            this.$element.attr(options);
             this.name = name;
         }
-        addHeader(level, text, options = "") {
+        addHeader(text, level, options = "") {
             if (!level || !text) return console.error('required param(s) missing'), !1;
             return this.$element.append(`<h${level}/>`).text(text).attr(options), this;
         }
@@ -165,11 +166,26 @@
         addKeyboardShortcut(prefId, defaultValue, callback) {
             AddonMenu.addPreference(prefId, defaultValue, "keydetect");
             AddonMenu.populateKeyAssignments(this.$element);
+            return this;
         }
         addToMenu(panel = "#addonMenu") {
             return $(panel).append(this.$element), this;
         }
     }
-    window.AddonMenu = new AddonMenu();
-    window.AddonMenuItem = AddonMenuItem;
+    try {
+        window.AddonMenu = new AddonMenu();
+        window.AddonMenuItem = AddonMenuItem;
+    } catch (e) {
+        window.addEventListener("geofsInitialized", () => {
+            $(document).on("preferenceRead", () => {
+                try {
+                    window.AddonMenu = new AddonMenu();
+                    window.AddonMenuItem = AddonMenuItem;
+                    console.log('init')
+                } catch (er) {
+                    console.log(er);
+                }
+            })
+        }, { once: true });
+    }
 })();
