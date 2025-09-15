@@ -110,7 +110,7 @@
          * @description - adds an input to the addon menu. this can be made into a key input for a keyboard shortcut. there's no method for this so just put the onclick in the options param
          * @param {object} options - HTML options object. it's rlly just whatever jQuery's .attr will accept. try not to override style.height and style.width
         **/
-        addInput(description, type, level = 0, prefId, defaultValue, options = "") {
+        addInput(description, type = "text, level = 0, prefId, defaultValue, options = "") {
             AddonMenu.addPreference(prefId, defaultValue, type);
             const inp = $(`<input type="${type}" data-gespref="${geofs.preferences.aMenu[prefId]}">`);
             inp.attr(options); // shorthands huge conditional for checkboxes
