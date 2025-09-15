@@ -21,23 +21,21 @@ if (!window.AddonMenu) {
         .then((script) => {
         eval(script);
     })
-        .then(() => {
-        setTimeout(afterAMenu, 101);
-    });
-} else afterAMenu()
+}
+window.executeOnEventDone("addonMenuInitialized", afterAMenu);
 
 function afterAMenu() {
 	// Setup goes here
 }
 ```
 
-Remove `// Setup goes here`, and in that line, create a variable and initialize it to a `new GMenu("Your addon name", "Short identifier for your addon")`. A good short identifier does not have any spaces, and is ideally less than 5 letters long.  
-For example, `const twLM = new window.GMenu("Taxiway Lights", "twL");` is what I used for my Taxiway Lights addon.
+Remove `// Setup goes here`, and in that line, create a variable and initialize it to a `new AddonMenuItem("Your addon name")`.
+For example, `const twLM = new window.AddonMenuItem("Taxiway Lights");` is what I used for my Taxiway Lights addon.
 
 ## Functions/Methods
 
 To add settings, you can call a few methods.  
-_Note: The defaultValue should always be a string, and ALL LOCALSTORAGE VALUES ARE STRINGS. This means that checkbox values, for instance, will be either "true" or "false"._  
+_Note: The defaultValue can be a boolean, string, or really anything that can be stringified. Don't use undefined or null though. For checkboxes it must be a boolean._  
 _Also Note: A title header, an Enabled checkbox, and a reset button are automatically created, so it is not necessary to create them manually._
 
 - `addItem(description, lsName, type, level, defaultValue)`: Adds an item to the menu. Options:
