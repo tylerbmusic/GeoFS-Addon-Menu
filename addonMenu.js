@@ -2,7 +2,7 @@
 // @name         GeoFS Addon Menu
 // @version      0.3
 // @description  A customizable addon for addons to add a universal menu for all addons to share
-// @author       GGamerGGuy
+// @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
 // @match        https://*.geo-fs.com/geofs.php*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geo-fs.com
@@ -94,6 +94,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
             window.gmenu.menuDiv.style.zIndex = "100";
             window.gmenu.menuDiv.style.position = "fixed";
             window.gmenu.menuDiv.style.width = "40%";
+            window.gmenu.menuDiv.style.display = "none";
             document.body.appendChild(window.gmenu.menuDiv);
         }
     }
@@ -119,6 +120,7 @@ window.GMenu = class { //The 'G' stands for either GeoFS or GGamerGGuy, dependin
                     console.log(document.getElementById(this.prefix + "Reset"));
                     document.getElementById(this.prefix + "Reset").addEventListener("click", () => {
                         console.log(this.prefix + " reset"); //debugging
+                        console.log(this.defaults);          //More debugging
                         for (let i = 0; i < this.defaults.length; i++) {
                             let currD = this.defaults[i]; //currD[0] = idName, currD[1] = defaultValue, currD[2] = isCheckbox
                             localStorage.setItem(currD[0], currD[1]);
