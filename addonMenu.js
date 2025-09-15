@@ -95,13 +95,13 @@
         }
     }
     class AddonMenuItem {
-        constructor(name) {
-            this.$element = $("<div/>");
+        constructor(name, options = "") {
+            this.$element = $("<div/>").attr(options);
             this.name = name;
         }
-        addHeader(level, text) {
+        addHeader(level, text, options = "") {
             if (!level || !text) return console.error('required param(s) missing'), !1;
-            return this.$element.append(`<h${level}/>`).text(text), this;
+            return this.$element.append(`<h${level}/>`).text(text).attr(options), this;
         }
         addButton(fn, text, id, options = "") {
             return $(`<button id="${id}">${text}</button><br>`).click(fn).appendTo(this.$element).attr(options), this;
@@ -110,7 +110,7 @@
          * @description - adds an input to the addon menu. this can be made into a key input for a keyboard shortcut. there's no method for this so just put the onclick in the options param
          * @param {object} options - HTML options object. it's rlly just whatever jQuery's .attr will accept. try not to override style.height and style.width
         **/
-        addInput(description, type = "text, level = 0, prefId, defaultValue, options = "") {
+        addInput(description, type = "text", level = 0, prefId, defaultValue, options = "") {
             AddonMenu.addPreference(prefId, defaultValue, type);
             const inp = $(`<input type="${type}" data-gespref="${geofs.preferences.aMenu[prefId]}">`);
             inp.attr(options); // shorthands huge conditional for checkboxes
