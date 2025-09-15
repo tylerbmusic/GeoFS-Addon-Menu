@@ -39,8 +39,8 @@
                 .appendTo(".geofs-ui-left");
             var a = 'aMenu';
             geofs.preferences[a] ||= {}, geofs.preferencesDefault[a] = {};
-            this.setPreferenceValues();
-            $("<style/>").html(`#addonMenu > checkbox {\nwidth: 30px !important;\nheight: 30px !important;\n}`).appendTo("head"); // css for checkboxes
+            this.#setPreferenceValues();
+            $("<style/>").html(`#addonMenu > checkbox {\nwidth: 30px !important;\nheight: 30px !important;\n}`).appendTo("head"); // css for checkboxes, shorthands huge conditional for checkboxes
             $(window).on("unload", geofs.savePreferences); // save all the stuff
             window.fireBasicEvent("addonMenuInitialized");
         }
@@ -50,7 +50,7 @@
             if (type === "checkbox" && typeof defaultVal !== "boolean") return console.error("checkbox default values can only be true or false"), !1;
             return geofs.preferences.aMenu[name] = geofs.preferencesDefault.aMenu[name] = defaultVal, true;
         }
-        setPreferenceValues = function() {
+        #setPreferenceValues = function() {
             $(this.$menu).find("[data-gespref]").each( (e, a) => {
                 var o = $(a)
                   , n = a.getAttribute("data-type") || a.getAttribute("type");
@@ -134,26 +134,26 @@
         }
     }
     class AddonMenuItem {
-        constructor(name, options = "") {
-            this.$element = $("<div/>")
+        constructor(id, options = "") {
+            if (!id) throw new TypeError("AddonMenuItem must be initialised with an id");
+            this.$element = $("<div/>", {id})
             this.$element.attr(options);
-            this.name = name;
         }
         addHeader(text, level, options = "") {
             if (!level || !text) return console.error('required param(s) missing'), !1;
             return this.$element.append(`<h${level}/>`).text(text).attr(options), this;
         }
         addButton(fn, text, id, options = "") {
-            return $(`<button id="${id}">${text}</button><br>`).click(fn).appendTo(this.$element).attr(options), this;
+            return $(`<button${id && ' id="' + id + '"'}>${text}</button><br>`).click(fn).appendTo(this.$element).attr(options), this;
         }
         /**
-         * @description - adds an input to the addon menu. this can be made into a key input for a keyboard shortcut. there's no method for this so just put the onclick in the options param
+         * @description - adds an input to the addon menu. this can be made into a key input for a keyboard shortcut. the method for this is sketchy rn so just put the onclick in the options param
          * @param {object} options - HTML options object. it's rlly just whatever jQuery's .attr will accept. try not to override style.height and style.width for checkboxes
         **/
-        addInput(description, type = "text", level = 0, prefId, defaultValue, options = "") {
+        addInput(prefId, defaultValue, description, type = "text", level = 0, options = "") {
             AddonMenu.addPreference(prefId, defaultValue, type);
             const inp = $(`<input type="${type}" data-gespref="${geofs.preferences.aMenu[prefId]}">`);
-            inp.attr(options); // shorthands huge conditional for checkboxes
+            inp.attr(options);
             this.$element.append(`<span style="text-indent: ${level}rem">${description}</span>`, inp, '<br>');
             return this;
         }
@@ -165,7 +165,7 @@
             return AddonMenu.addPreference(prefId, defaultValue, "keydetect"), AddonMenu.populateKeyAssignments(this.$element), this;
         }
         addToMenu(panel = "#addonMenu") {
-            return $(panel).append(this.$element), this;
+            return (this.$element.children().length === 0 && console.warn(`AddonMenuItem with ID '${this.$element.attr("id")}' is empty`)), $(panel).append(this.$element), this;
         }
     }
     try {
