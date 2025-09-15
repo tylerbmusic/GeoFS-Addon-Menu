@@ -2,7 +2,7 @@
 // @name         GeoFS Addon Menu
 // @version      1.0
 // @description  A customizable (and now easily implementable) addon that adds a universal menu for all addons to share
-// @author       GGamerGGuy & meatbroc
+// @author       GGamerGGuy Chiroyce, & meatbroc
 // @match        https://geo-fs.com/geofs.php*
 // @match        https://*.geo-fs.com/geofs.php*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=geo-fs.com
