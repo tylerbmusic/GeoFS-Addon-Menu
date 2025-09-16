@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.4
+// @version      0.4.1
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
@@ -106,7 +106,7 @@ window.gmenu.changeShortcut = function(id) {
         btn.classList.add("gmenu-edit");
         function listen(e) {
             let ovrrd = [e.code.toLowerCase().includes("control"), e.code.toLowerCase().includes("shift"), e.code.toLowerCase().includes("alt"), e.code.toLowerCase().includes("meta")];
-            localStorage.setItem(id, `${e.code},${ovrrd[0] ? "true" : e.ctrlKey.toString()},${ovrrd[1] ? "true" : e.shiftKey.toString()},${ovrrd[2] ? "true" : e.altKey.toString()},${ovrrd[3] ? "true" : e.metaKey.toString()}`);
+            localStorage.setItem(id, `${e.code}&,${ovrrd[0] ? "true" : e.ctrlKey.toString()}&,${ovrrd[1] ? "true" : e.shiftKey.toString()}&,${ovrrd[2] ? "true" : e.altKey.toString()}&,${ovrrd[3] ? "true" : e.metaKey.toString()}`);
             btn.classList.remove("gmenu-edit");
             btn.innerHTML = `${(e.ctrlKey && !ovrrd[0]) ? "Ctrl+" : ""}${(e.shiftKey && !ovrrd[1]) ? "Shift+" : ""}${(e.altKey && !ovrrd[2]) ? "Alt+" : ""}${(e.metaKey && !ovrrd[3]) ? "Meta+" : ""}${e.code}`;
             btn.removeEventListener('keyup', listen);
@@ -232,14 +232,14 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
             localStorage.setItem(idName, defaultValue);
         }
         window.gmenu.allLS.push([idName, false]);
-        let tester = localStorage.getItem(idName).split(',');
+        let tester = localStorage.getItem(idName).split('&,');
         let oldSave = (tester.length == 1);
         let e = (oldSave) ? {code: tester[0], ctrlKey: false, shiftKey: false, altKey: false, metaKey: false} : {code: tester[0], ctrlKey: (tester[1] == "true"), shiftKey: (tester[2] == "true"), altKey: (tester[3] == "true"), metaKey: (tester[4] == "true")};
         this.html += `<span style="padding-left: ${level}rem">${description}</span>
         <button id="${this.prefix + lsName}" class="gmenu-sc" onclick="window.gmenu.changeShortcut('${this.prefix + lsName}')">${e.ctrlKey ? "Ctrl+" : ""}${e.shiftKey ? "Shift+" : ""}${e.altKey ? "Alt+" : ""}${e.metaKey ? "Meta+" : ""}${e.code}</button><br>`;
         this.updateHTML();
         function t(event) { //I used 't' for the function name for no particular reason
-            let tester = localStorage.getItem(idName).split(',');
+            let tester = localStorage.getItem(idName).split('&,');
             let oldSave = (tester.length == 1);
             if ((event.key == tester[0] || event.code == tester[0]) && (oldSave || (event.ctrlKey.toString() == tester[1] && event.shiftKey.toString() == tester[2] && event.altKey.toString() == tester[3] && event.metaKey.toString() == tester[4]))) {
                 console.log(event.key + " pressed");
