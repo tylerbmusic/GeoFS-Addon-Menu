@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.4.2
+// @version      0.4.3
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
@@ -17,7 +17,8 @@
     window.gmenu.isOpen = false; //Whether or not the menu is open
     window.gmenu.allHTML = {}; //All HTML blocks
     window.gmenu.allLS = []; //All localStorage values (it's a 2d array: [lsValue_str, isCheckbox_bool])
-    var styleEl = document.createElement('style');
+    window.gmenu.lookupTable = {}; //All settings in the format {identifier: valueType}
+    var styleEl = document.createElement('style'); //Some styling for the menu
     styleEl.innerHTML = `
         .gmenu-cb {
             width: 1rem;
@@ -58,7 +59,7 @@
             font-size: 1rem;
             font-family: monospace;
             box-shadow: 0 0 0px 0 #385371aa;
-            transition: 0.5s;
+            transition: 0.2s;
         }
         .gmenu-sc:hover {
             background: #2b3745aa;
@@ -68,9 +69,44 @@
             background: #385371ff;
             color: #ddd;
         }
+        .gmenu-btn {
+            font-size: 1.2rem;
+            color: black;
+            border: 3px solid #ffc107;
+            margin: 10px;
+            border-radius: 1rem;
+            cursor: pointer;
+            background: linear-gradient(90deg, #ddd, #fff);
+            box-shadow: 0 0 10px 0 black;
+            transition: 0.2s;
+        }
+        .gmenu-btn:hover {
+            border: 4px soild #fdd457;
+            background: linear-gradient(90deg, #fff, #ddd);
+            box-shadow: 0 0 10px 0 #333;
+        }
+        .gmenu-btn:active {
+            border: 5px solid #ffeaab;
+            background: linear-gradient(90deg, #ffc107, #ffc107);
+            color: white;
+            box-shadow: 0 0 10px 0 #888;
+        }
+        .gmenu-item {
+            border: 2px solid #ffc107;
+            font-size: 1.1rem;
+            border-radius: 5px;
+            min-width: 4rem;
+            font-family: monospace;
+        }
     `;
     document.head.appendChild(styleEl);
 })();
+
+/**
+ * Waits for an element to be created, then resolves.
+ * @param {string} selector - The query selector 
+ * @returns {Element} The element from the query selector.
+ */
 window.gmenu.waitForElm = function(selector) {
     return new Promise(resolve => {
         if (document.querySelector(selector)) {
@@ -91,7 +127,10 @@ window.gmenu.waitForElm = function(selector) {
         });
     });
 };
-//Function to open/close the menu
+
+/**
+ * Toggles the menu (closes if it's opened, opens if it's closed)
+ */
 window.gmenu.toggleMenu = function() {
     if (window.gmenu.isOpen) {
         window.gmenu.isOpen = false;
@@ -106,6 +145,9 @@ window.gmenu.toggleMenu = function() {
     }
 };
 
+/**
+ * Compiles all the HTML in `window.gmenu.allHTML` and sorts them alphabetically.
+ */
 window.gmenu.compileAllHTML = function() {
     let keys = Object.keys(window.gmenu.allHTML).sort();
     window.gmenu.menuDiv.innerHTML = ``; //Clear the HTML to refresh it
@@ -117,6 +159,10 @@ window.gmenu.compileAllHTML = function() {
     }
 };
 
+/**
+ * In a nutshell, this function handles shortcut changes when the user presses a shortcut button.
+ * @param {string} id - The id of the element to be changed, which should also be the localStorage id.
+ */
 window.gmenu.changeShortcut = function(id) {
     console.log(id);
     let btn = document.getElementById(id);
@@ -134,8 +180,31 @@ window.gmenu.changeShortcut = function(id) {
     }
 };
 
+/**
+ * An easy way to retrieve stored settings.
+ * @param {string} id - The addon's unique identifier
+ * @param {string} name - The setting's identifier
+ * @returns The value as requested
+ */
+window.gmenu.get = function(id, name) {
+    let type = lookupTable[id + name];
+    if (type == "boolean") {
+        return (localStorage.getItem(id + name) == "true");
+    }
+    if (type == "Number") {
+        return Number(localStorage.getItem(id + name));
+    }
+    return localStorage.getItem(id + name);
+};
+
+
 window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window scope for easy access.
     //Calling the constructor should automatically create the menu button. Options: name: A string, the name of your addon; prefix: A string, a short unique identifier for your addon which will be used for localStorage
+    /**
+     * Calling the constructor should automatically ceate the menu button (if one isn't already there), a title header, an enabled checkbox, and a reset button.
+     * @param {string} name - The name of your addon
+     * @param {string} prefix - A short unique identifier for your addon which will be used for localStorage 
+     */
     constructor(name, prefix) {
         this.defaults = [];
         this.name = name;
@@ -147,7 +216,9 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
         //this.htmlIndex = window.gmenu.allHTML.length; //This instance's index in the allHTML array
     }
 
-    //Called automatically, initializes the button, menu div, and a couple of other things
+    /**
+     * Called automatically, initializes the button, menu div, and a couple of other things
+     */
     initialize() {
         window.gmenu.isGMenuInit = true; //Prevent other instances from initializing this window
         var bottomDiv = document.getElementsByClassName('geofs-ui-bottom')[0];
@@ -173,6 +244,10 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
         }
     }
 
+    /**
+     * Updates the menu's HTML if and only if the GMenu is closed.
+     * @returns {boolean} true if the GMenu was closed and it was able to update the HTML, false otherwise
+     */
     updateHTML() {
         if (!window.gmenu.isOpen) {
             window.gmenu.allHTML[this.name] = `
@@ -186,6 +261,7 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
             if (localStorage.getItem(this.prefix + "Enabled") == null) {
                 localStorage.setItem(this.prefix + "Enabled", "true");
             }
+            window.gmenu.lookupTable[this.prefix + "Enabled"] = "boolean";
             window.gmenu.waitForElm(`#${this.prefix}Reset`).then(window.gmenu.waitForElm(`#${this.prefix}Enabled`)).then((elm) => {
                 setTimeout(() => {
                     //console.log('Menu stuff added');
@@ -215,8 +291,16 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
         return false;
     } //End updateHTML()
 
-    //Note: The defaultValue should always be a string, and ALL LOCALSTORAGE VALUES ARE STRINGS. This means that checkbox values, for instance, will be either "true" or "false".
-    //Adds an item to the menu. Options: description: String, a very short description;  lsName: String, the name used for localStorage retrieval/storage (also the id name), will be automatically prefixed by the prefix;  type: any of the standard HTML input types;  level: Integer, the indentation of the item, where 0 is no indentation;  defaultValue: Self explanatory, the value if the item was not set or was reset
+    //Note: The defaultValue should always be a string, and ALL LOCALSTORAGE VALUES ARE STRINGS. This means that checkbox values, for instance, will be either "true" or "false", and number values will be converted into strings.
+    /**
+     * Adds an input item to the menu.
+     * @param {string} description - A very short (<5 words) description
+     * @param {string} lsName - The name used for local storage retrieval/storage (also the id name), will be automatically prefixed by the prefix. It should be in camel case with the first letter capitalized.
+     * @param {string} type - Any of the standared HTML input types, defaults to text
+     * @param {number} level - The indentation level of the item, where 0 is no indentation, defaults to 0
+     * @param {*} defaultValue - The value of the setting that will be used upon the user's first time using the addon
+     * @param {string} options - Optional HTML attributes for the input
+     */
     addItem(description, lsName, type = "text", level = 0, defaultValue, options = "") {
         let idName = this.prefix + lsName;
         this.defaults.push([idName, defaultValue, (type == "checkbox" || type == "radio")]); //Checkboxes and radios are... "special." (elem.value doesn't work on them, they require elem.checked)
@@ -229,7 +313,7 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
             <span style="
                 padding-left: ${level}rem
             ">${description}</span>
-            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" ${options}><br>
+            <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.value)" class="gmenu-item" ${options}><br>
             `;
         } else { //if (type == "checkbox" || type == "radio")
             this.html += `
@@ -239,10 +323,18 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
             <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.checked)"class="gmenu-cb" ${options}><br>
             `;
         }
+        window.gmenu.lookupTable[this.prefix + lsName] = (type == "checkox" || type == "radio") ? "boolean" : (type == "number" || type == "range") ? "Number" : "string";
         this.updateHTML();
     }
 
-    //Adds a keyboard shortcut to the menu (this method is similar to the addItem method, but adds a keydown listener and function).
+    /**
+     * Adds a keyboard shortcut to the menu (this method is similar to the addItem method, but is specifically meant for handling keyboard shortcuts).
+     * @param {string} description - A very short (<5 words) description
+     * @param {string} lsName - The name used for local storage retrieval/storage (also the id name), will be automatically prefixed by the prefix. It should be in camel case with the first letter capitalized.
+     * @param {number} level - The indentation level of the item, where 0 is no indentation, defaults to 0
+     * @param {string} defaultValue - The default value, prefferably in the format `keyCode`&,`ctrlKey`&,`shiftKey`&,`altKey`&,`metaKey` but also acceptable in the format `keyCode` or `key`.
+     * @param {function} fn - The function to be executed when the shortcut is pressed
+     */
     addKBShortcut(description, lsName, level = 0, defaultValue, fn) {
         let idName = this.prefix + lsName;
         this.defaults.push([idName, defaultValue, false]);
@@ -268,14 +360,23 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
         document.addEventListener("keydown", t);
     }
 
-    //Adds a button to the menu. Options: title: String, the button's title; fn: A function to be run when the button is clicked
+    /**
+     * Adds a button to the menu.
+     * @param {string} title - The button's title
+     * @param {function} fn - A function to be run when the button is clicked
+     * @param {string} options - Optional HTML attributes
+     */
     addButton(title, fn, options = "") {
-        this.html += `<button id="${this.prefix}${title}" ${options}>${title}</button><br>`;
+        this.html += `<button class="gmenu-btn" id="${this.prefix}${title}" ${options}>${title}</button><br>`;
         this.updateHTML();
         document.getElementById(this.prefix + title).addEventListener('click', fn);
     }
 
-    //Adds a header of the specified level (from 1 to 6, but it is recommended to start at 2 as h1 is used for the addon titles)
+    /**
+     * Adds a header of the specified level
+     * @param {number} level - The header's level (1 for h1, 2 for h2, 3 for h3, etc.). It is reccomended to start at 2 as h1 is used for the addon titles.
+     * @param {string} text - The header's text contents
+     */
     addHeader(level, text) {
         this.html += `<h${level}>${text}</h${level}>`;
         this.updateHTML();
