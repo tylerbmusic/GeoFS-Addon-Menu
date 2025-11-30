@@ -323,7 +323,7 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
             <input id="${idName}" type="${type}" onchange="localStorage.setItem('${idName}', this.checked)"class="gmenu-cb" ${options}><br>
             `;
         }
-        window.gmenu.lookupTable[this.prefix + lsName] = (type == "checkox" || type == "radio") ? "boolean" : (type == "number" || type == "range") ? "Number" : "string";
+        window.gmenu.lookupTable[this.prefix + lsName] = (type == "checkbox" || type == "radio") ? "boolean" : (type == "number" || type == "range") ? "Number" : "string";
         this.updateHTML();
     }
 
