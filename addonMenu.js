@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.4.3
+// @version      0.4.4
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
