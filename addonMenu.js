@@ -187,7 +187,7 @@ window.gmenu.changeShortcut = function(id) {
  * @returns The value as requested
  */
 window.gmenu.get = function(id, name) {
-    let type = lookupTable[id + name];
+    let type = window.gmenu.lookupTable[id + name];
     if (type == "boolean") {
         return (localStorage.getItem(id + name) == "true");
     }
