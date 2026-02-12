@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.4.4
+// @version      0.5
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
@@ -379,6 +379,24 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
      */
     addHeader(level, text) {
         this.html += `<h${level}>${text}</h${level}>`;
+        this.updateHTML();
+    }
+
+    /**
+     * Adds small gray text to the menu, similar to Markdown's "-#". Use this below (after) a menu item for important information that is not conveyed in the menu item's description. 
+     * @param {string} text - The note's text contents
+     */
+    addNote(text) {
+        this.html += `<p style="color: #888; font-size: 12px; line-height: 10px; padding-left: 1rem; padding-right: 2rem;">${text}</p>`;
+        this.updateHTML();
+    }
+
+    /**
+     * Adds custom HTML to the menu.
+     * @param {string} html - The HTML to add
+     */
+    addCustom(html) {
+        this.html += html;
         this.updateHTML();
     }
 }
