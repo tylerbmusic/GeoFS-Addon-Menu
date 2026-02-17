@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.5
+// @version      0.6
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
@@ -334,8 +334,9 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
      * @param {number} level - The indentation level of the item, where 0 is no indentation, defaults to 0
      * @param {string} defaultValue - The default value, prefferably in the format `keyCode`&,`ctrlKey`&,`shiftKey`&,`altKey`&,`metaKey` but also acceptable in the format `keyCode` or `key`.
      * @param {function} fn - The function to be executed when the shortcut is pressed
+     * @param {function} upFn - The function to be executed when the shortcut is released
      */
-    addKBShortcut(description, lsName, level = 0, defaultValue, fn) {
+    addKBShortcut(description, lsName, level = 0, defaultValue, fn, upFn = null) {
         let idName = this.prefix + lsName;
         this.defaults.push([idName, defaultValue, false]);
         if (localStorage.getItem(idName) == null) {
@@ -349,14 +350,28 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
         this.html += `<span style="padding-left: ${level}rem">${description}</span>
         <button id="${this.prefix + lsName}" class="gmenu-sc" onclick="window.gmenu.changeShortcut('${this.prefix + lsName}')">${e.ctrlKey ? "Ctrl+" : ""}${e.shiftKey ? "Shift+" : ""}${e.altKey ? "Alt+" : ""}${e.metaKey ? "Meta+" : ""}${e.code}</button><br>`;
         this.updateHTML();
+        let wasPressed;
         function t(event) { //I used 't' for the function name for no particular reason
             let tester = localStorage.getItem(idName).split('&,');
             let oldSave = (tester.length == 1);
+            wasPressed = true;
             if ((event.key == tester[0] || event.code == tester[0]) && (oldSave || (event.ctrlKey.toString() == tester[1] && event.shiftKey.toString() == tester[2] && event.altKey.toString() == tester[3] && event.metaKey.toString() == tester[4]))) {
                 console.log(event.key + " pressed");
                 fn();
             }
         };
+        if (upFn) {
+            function u(event) {
+                let tester = localStorage.getItem(idName).split('&,');
+                let oldSave = (tester.length == 1);
+                if (wasPressed && ((event.key == tester[0] || event.code == tester[0]) && (oldSave || (event.ctrlKey.toString() == tester[1] && event.shiftKey.toString() == tester[2] && event.altKey.toString() == tester[3] && event.metaKey.toString() == tester[4])))) {
+                    wasPressed = false;
+                    console.log(event.key + " unpressed");
+                    upFn();
+                }
+            }
+            document.addEventListener("keyup", u);
+        }
         document.addEventListener("keydown", t);
     }
 
