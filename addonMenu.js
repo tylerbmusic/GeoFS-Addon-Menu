@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.6
+// @version      0.6.1
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
@@ -350,12 +350,12 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
         this.html += `<span style="padding-left: ${level}rem">${description}</span>
         <button id="${this.prefix + lsName}" class="gmenu-sc" onclick="window.gmenu.changeShortcut('${this.prefix + lsName}')">${e.ctrlKey ? "Ctrl+" : ""}${e.shiftKey ? "Shift+" : ""}${e.altKey ? "Alt+" : ""}${e.metaKey ? "Meta+" : ""}${e.code}</button><br>`;
         this.updateHTML();
-        let wasPressed;
+        let wasPressed = false;
         function t(event) { //I used 't' for the function name for no particular reason
             let tester = localStorage.getItem(idName).split('&,');
             let oldSave = (tester.length == 1);
-            wasPressed = true;
-            if ((event.key == tester[0] || event.code == tester[0]) && (oldSave || (event.ctrlKey.toString() == tester[1] && event.shiftKey.toString() == tester[2] && event.altKey.toString() == tester[3] && event.metaKey.toString() == tester[4]))) {
+            if (!wasPressed && ((event.key == tester[0] || event.code == tester[0]) && (oldSave || (event.ctrlKey.toString() == tester[1] && event.shiftKey.toString() == tester[2] && event.altKey.toString() == tester[3] && event.metaKey.toString() == tester[4])))) {
+                wasPressed = true;
                 console.log(event.key + " pressed");
                 fn();
             }
