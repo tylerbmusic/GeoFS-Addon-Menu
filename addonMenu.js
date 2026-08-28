@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         GeoFS Addon Menu
-// @version      0.6.3
+// @version      0.7
 // @description  A customizable addon for addons to add a universal menu for all addons to share
 // @author       GGamerGGuy & Chiroyce
 // @match        https://geo-fs.com/geofs.php*
@@ -181,7 +181,7 @@ window.gmenu.changeShortcut = function(id) {
 };
 
 /**
- * An easy way to retrieve stored settings.
+ * An easy way to retrieve stored settings outside of the GMenu class.
  * @param {string} id - The addon's unique identifier
  * @param {string} name - The setting's identifier
  * @returns The value as requested
@@ -195,6 +195,16 @@ window.gmenu.get = function(id, name) {
         return Number(localStorage.getItem(id + name));
     }
     return localStorage.getItem(id + name);
+};
+
+/**
+ * An easy way to change stored settings outside of the GMenu class.
+ * @param {string} id - The addon's unique identifier
+ * @param {string} name - The setting's identifier
+ * @param {any} value - The setting's new value
+ */
+window.gmenu.set = function(id, name, value) {
+    localStorage.setItem(id + name, (value.toString() || value));
 };
 
 
@@ -290,6 +300,32 @@ window.GMenu = class { //The 'G' stands for GeoFS. I put the class in the window
         }
         return false;
     } //End updateHTML()
+
+    /**
+     * An easy way to retrieve stored settings.
+     * @param {string} name - The setting's identifier
+     * @returns The value as requested
+     */
+    get(name) {
+        let id = this.prefix;
+        let type = window.gmenu.lookupTable[id + name];
+        if (type == "boolean") {
+            return (localStorage.getItem(id + name) == "true");
+        }
+        if (type == "Number") {
+            return Number(localStorage.getItem(id + name));
+        }
+        return localStorage.getItem(id + name);
+    }
+
+    /**
+     * An easy way to change stored settings.
+     * @param {string} name - The setting's identifier
+     * @param {any} value - The setting's new value
+     */
+    set(name, value) {
+        localStorage.setItem(this.prefix + name, (value.toString() || value));
+    }
 
     //Note: The defaultValue should always be a string, and ALL LOCALSTORAGE VALUES ARE STRINGS. This means that checkbox values, for instance, will be either "true" or "false", and number values will be converted into strings.
     /**
